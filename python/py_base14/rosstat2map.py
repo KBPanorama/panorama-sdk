@@ -1484,7 +1484,7 @@ def _apply_vertical_align_to_thematic_title_objects(hmap_doc, log, seekapi, sita
     if not object_keys or not subjects:
         return 0
     put_v = getattr(mapapi, 'mapPutTextVerticalAlign', None)
-    read_by_num = getattr(seekapi, 'mapReadObjectByNumber', None)
+    read_by_num = getattr(seekapi, 'mapReadObjectByNumberEx', None)
     if not callable(put_v):
         return 0
     if not callable(read_by_num):
@@ -1547,7 +1547,7 @@ def _apply_vertical_align_to_thematic_title_objects(hmap_doc, log, seekapi, sita
             for hsite in site_try:
                 try:
                     ro = read_by_num(hmap_doc, hsite, ed, int(list_no), int(obj_no))
-                    if ro:
+                    if ro == 2:
                         loaded = True
                         break
                 except Exception:
@@ -1627,7 +1627,7 @@ def _offset_subject_labels_east_m(hmap_doc, seekapi, sitapi, object_keys: Set[in
         return 0
     if not object_keys or abs(delta_east_m) < 1e-09:
         return 0
-    read_by_num = getattr(seekapi, 'mapReadObjectByNumber', None)
+    read_by_num = getattr(seekapi, 'mapReadObjectByNumberEx', None)
     pc = getattr(mapapi, 'mapPointCount', None)
     if not all((callable(read_by_num), callable(pc))):
         return 0
@@ -1688,7 +1688,7 @@ def _offset_subject_labels_east_m(hmap_doc, seekapi, sitapi, object_keys: Set[in
             for hsite in site_try:
                 try:
                     ro = read_by_num(hmap_doc, hsite, ed, int(list_no), int(obj_no))
-                    if ro:
+                    if ro == 2:
                         loaded = True
                         break
                 except Exception:
@@ -2053,7 +2053,7 @@ def _add_legend_caption_object(result_sitx: Path, text: str, log) -> None:
     try:
         sheet_no = 1
         try:
-            sn = int(mapapi.mapGetListNumberByNameUn(hres, mapsyst.WTEXT(LEGEND_TEXT_LAYER_NAME)) or 0)
+            sn = int(mapapi.mapGetListNumberByNomenclatureUn(hres, mapsyst.WTEXT(LEGEND_TEXT_LAYER_NAME)) or 0)
             if sn > 0:
                 sheet_no = sn
         except Exception:
@@ -2235,7 +2235,7 @@ def _add_gradation_color_rectangles(result_sitx: Path, colors_bgr: List[int], lo
         return
     sheet_no = 1
     try:
-        sn = int(mapapi.mapGetListNumberByNameUn(hres, mapsyst.WTEXT(GRADATION_RECT_LAYER_NAME)) or 0)
+        sn = int(mapapi.mapGetListNumberByNomenclatureUn(hres, mapsyst.WTEXT(GRADATION_RECT_LAYER_NAME)) or 0)
         if sn > 0:
             sheet_no = sn
     except Exception:

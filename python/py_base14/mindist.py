@@ -98,8 +98,8 @@ class GraphPathfinder:
         c = sitapi.mapGetSiteObjectCount(self.baseMap,hsite)
         hObj = sitapi.mapCreateSiteObject(self.baseMap,hsite)
         for i in range(0,c):
-            isDeleted = seekapi.mapReadObjectByNumber(self.baseMap,hsite,hObj,1,i+1)
-            if isDeleted != 1:
+            isDeleted = seekapi.mapReadObjectByNumberEx(self.baseMap,hsite,hObj,1,i+1)
+            if isDeleted == 2:
                 x = ctypes.c_double(0)
                 y = ctypes.c_double(0)
                 if mapapi.mapGetObjectCenterEx(self.baseMap,hObj,ctypes.byref(x),ctypes.byref(y),1):
@@ -222,7 +222,7 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:Ð
         c = sitapi.mapGetSiteObjectCount(hMap,hSite)
         if c > 100: c = 100
         for i in range(0,c):
-            if seekapi.mapReadObjectByNumber(hMap,hSite,hObj,1,i+1) == hObj:
+            if seekapi.mapReadObjectByNumberEx(hMap,hSite,hObj,1,i+1) == 2:
                 s = mapapi.mapSemanticAmount(hObj)
                 for j in range(0,s):
                     _name = mapsyst.WTEXT(128)

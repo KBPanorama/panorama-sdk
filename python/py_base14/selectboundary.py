@@ -31,8 +31,8 @@ def SearchBoundary(hmap:maptype.HMAP, hsite:maptype.HSITE) -> float:
         if percent != oldpercent:
             mapapi.mapProgressBar(progress, percent, mapsyst.WTEXT('Поиск приграничных участков'))
             oldpercent = percent
-        ret = seekapi.mapReadObjectByNumber(hmap, hsite, info1, 1, i)      # Считать очередной объект карты по порядковому номеру
-        if (ret == 0):
+        ret = seekapi.mapReadObjectByNumberEx(hmap, hsite, info1, 1, i)      # Считать очередной объект карты по порядковому номеру
+        if ret != 2:
             continue
         number = mapapi.mapSemanticCodeValueNameUn(info1, typecode, sembuf, sembuf.size(), 1)     # Определить, есть ли интересующая нас семантика 
         if (number == 0):
@@ -42,8 +42,8 @@ def SearchBoundary(hmap:maptype.HMAP, hsite:maptype.HSITE) -> float:
            continue
         edit = 0
         for j in range(1, objcount):                                       # Цикл по объектам карты 
-            ret = seekapi.mapReadObjectByNumber(hmap, hsite, info2, 1, j)  # Считать очередной объект карты по порядковому номеру
-            if (ret == 0):
+            ret = seekapi.mapReadObjectByNumberEx(hmap, hsite, info2, 1, j)  # Считать очередной объект карты по порядковому номеру
+            if ret != 2:
                 continue
             number = mapapi.mapSemanticCodeValueNameUn(info2, typecode, sembuf, sembuf.size(), 1) # Определить, есть ли интересующая нас семантика 
             if number == 0:
