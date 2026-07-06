@@ -20,6 +20,9 @@ Copyright PANORAMA Group 1991-2026. All Rights Reserved.
 Справочная система Панорама:  
 [https://help.gisserver.ru/v15/russian/mapscena/index.html?runpy.html](https://help.gisserver.ru/v15/russian/mapscena/index.html?runpy.html)
 
+Справка по функциям интерфейса MAPAPI на языке Python:  
+[https://help.gisinfo.ru/api/python/index.html](https://help.gisinfo.ru/api/python/index.html)
+
 ## Содержание подкаталогов
 
 - `\python\py_base14` - Примеры прикладных скриптов на Python
