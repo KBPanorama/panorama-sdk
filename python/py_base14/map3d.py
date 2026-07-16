@@ -24,7 +24,7 @@ def AddObjectHValue(_hmap:maptype.HMAP, _hobj:maptype.HOBJ, _parm = 0) -> int:
         for p in range(1, points): 
             point = maptype.DOUBLEPOINT(0, 0)
             mapapi.mapGetPlanePoint(_hobj, ctypes.byref(point), p, s)
-            h = mtrapi.mapGetPrecisionHeightTriangle(_hmap, point.X, point.Y)  # Вычисление высоты в точке по окружающим значениям
+            h = mtrapi.mapGetPrecisionHeightTriangleEx(_hmap, point.X, point.Y, 0)  # Вычисление высоты в точке по окружающим значениям
             mapapi.mapSetHPlane(_hobj, h, p, s)
             if h > maptype.ERRORHEIGHT:
                 isupdate +=1

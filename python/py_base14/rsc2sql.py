@@ -189,7 +189,7 @@ class Reporter:
 	def commit_action(self) -> None:
 		if self.hmap and self._logapi is not None:
 			try:
-				self._logapi.mapLogCommitAction(self.hmap, self.hmap)
+				self._logapi.mapLogCommitActionEx(self.hmap, self.hmap, None)
 			except Exception:
 				pass
 
@@ -243,7 +243,7 @@ def parse_semantics_from_rsc(
 	except Exception:
 		prev_msg = 0
 	try:
-		hrsc = rscapi.mapOpenRscUn(wpath)
+		hrsc = rscapi.mapOpenRscEx(wpath, 0)
 	finally:
 		try:
 			mapapi.mapMessageEnable(prev_msg)
@@ -494,7 +494,7 @@ def generate_layer_tables_sql_from_rsc_path(
 	wpath = mapsyst.WTEXT(rsc_path)
 	hrsc = 0
 	try:
-		hrsc = rscapi.mapOpenRscUn(wpath)
+		hrsc = rscapi.mapOpenRscEx(wpath, 0)
 		if not hrsc:
 			raise RuntimeError(tr("err_open_rsc", path=rsc_path))
 		return generate_layer_tables_sql(hrsc, semantics, progress=progress, is_cancelled=is_cancelled)
@@ -787,7 +787,7 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 				except Exception:
 					prev_msg = 0
 				try:
-					_hr = rscapi.mapOpenRscUn(mapsyst.WTEXT(_candidate))
+					_hr = rscapi.mapOpenRscEx(mapsyst.WTEXT(_candidate), 0)
 				finally:
 					try:
 						mapapi.mapMessageEnable(prev_msg)

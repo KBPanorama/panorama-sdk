@@ -1490,7 +1490,7 @@ def _apply_vertical_align_to_thematic_title_objects(hmap_doc, log, seekapi, sita
     if not callable(read_by_num):
         return 0
     get_v = getattr(mapapi, 'mapGetTextVerticalAlign', None)
-    seek_info = mapapi.mapCreateObject(hmap_doc)
+    seek_info = mapapi.mapCreateObject(hmap_doc, 1, maptype.IDDOUBLE2, 0)
     if not seek_info:
         return 0
     targets: List[Tuple[int, int, int]] = []
@@ -1540,7 +1540,7 @@ def _apply_vertical_align_to_thematic_title_objects(hmap_doc, log, seekapi, sita
     for list_no, obj_no, key in targets:
         ed = None
         try:
-            ed = mapapi.mapCreateObject(hmap_doc)
+            ed = mapapi.mapCreateObject(hmap_doc, 1, maptype.IDDOUBLE2, 0)
             if not ed:
                 continue
             loaded = False
@@ -1631,7 +1631,7 @@ def _offset_subject_labels_east_m(hmap_doc, seekapi, sitapi, object_keys: Set[in
     pc = getattr(mapapi, 'mapPointCount', None)
     if not all((callable(read_by_num), callable(pc))):
         return 0
-    seek_info = mapapi.mapCreateObject(hmap_doc)
+    seek_info = mapapi.mapCreateObject(hmap_doc, 1, maptype.IDDOUBLE2, 0)
     if not seek_info:
         return 0
     targets: List[Tuple[int, int, int]] = []
@@ -1681,7 +1681,7 @@ def _offset_subject_labels_east_m(hmap_doc, seekapi, sitapi, object_keys: Set[in
     for list_no, obj_no, key in targets:
         ed = None
         try:
-            ed = mapapi.mapCreateObject(hmap_doc)
+            ed = mapapi.mapCreateObject(hmap_doc, 1, maptype.IDDOUBLE2, 0)
             if not ed:
                 continue
             loaded = False
@@ -2369,7 +2369,7 @@ def _open_document_in_panorama(path: Path) -> bool:
     try:
         aw_opendocun = 1571
         wpath = mapsyst.WTEXT(str(path))
-        mapapi.mapSendMessage(aw_opendocun, wpath.buffer(), 0)
+        mapapi.mapSendMessage(aw_opendocun, ctypes.addressof(wpath.buffer()), 0)
         return True
     except Exception:
         return False
@@ -2404,7 +2404,7 @@ def _interpolate_rgb(c1: int, c2: int, t: float) -> int:
 
 def _collect_map_object_keys(hmap, seekapi, sitapi, object_code_filter: int=0, excluded_object_codes: Optional[Set[int]]=None) -> List[int]:
     """Сбор ключей объектов на карте"""
-    info = mapapi.mapCreateObject(hmap)
+    info = mapapi.mapCreateObject(hmap, 1, maptype.IDDOUBLE2, 0)
     if not info:
         raise RuntimeError('Не удалось создать объект')
     try:
@@ -2670,7 +2670,7 @@ def _build_objname_index(hmap, connect_sem: int, seekapi, sitapi, allowed_keys: 
     """Построение индекса объектов по имени"""
     exact: Dict[str, List[int]] = {}
     normalized: Dict[str, List[int]] = {}
-    info = mapapi.mapCreateObject(hmap)
+    info = mapapi.mapCreateObject(hmap, 1, maptype.IDDOUBLE2, 0)
     if not info:
         return (exact, normalized)
     try:
@@ -2793,7 +2793,7 @@ def _map_table_rows_to_values_with_fallback(table_abs: Path, value_col: int, obj
             continue
         miss_count += 1
     return mapped_values
-
+    
 def run_thematic_with_mathapi(table_path: Path, report_code: str, value_col: int, min_value: float, max_value: float, color_min: int, color_max: int, *, previous_mpt: Optional[Path]=None, output_stem: Optional[str]=None) -> Tuple[int, Path, Path]:
     """Построение тематической карты с использованием mathapi"""
     log = get_logger()

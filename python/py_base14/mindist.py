@@ -96,7 +96,7 @@ class GraphPathfinder:
         centers    = []
         seminfo    = []
         c = sitapi.mapGetSiteObjectCount(self.baseMap,hsite)
-        hObj = sitapi.mapCreateSiteObject(self.baseMap,hsite)
+        hObj = sitapi.mapCreateSiteObject(self.baseMap,hsite, maptype.IDDOUBLE2, 0)
         for i in range(0,c):
             isDeleted = seekapi.mapReadObjectByNumberEx(self.baseMap,hsite,hObj,1,i+1)
             if isDeleted == 2:
@@ -218,7 +218,7 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
     # Сформировать список видов семантик (атрибутов) по первым 100 объектам карты
     def CollectSemNames(hMap: maptype.HMAP, hSite: maptype.HSITE):
         semNames = []
-        hObj = sitapi.mapCreateSiteObject(hMap,hSite)
+        hObj = sitapi.mapCreateSiteObject(hMap,hSite, maptype.IDDOUBLE2, 0)
         c = sitapi.mapGetSiteObjectCount(hMap,hSite)
         if c > 100: c = 100
         for i in range(0,c):
@@ -253,35 +253,35 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
     def SetVars():
         nonlocal processed, semNameA, semNameB
         if sitA == 0 and sitB == 0:
-            mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбраны карты объектов'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбраны карты объектов'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
             return
         else:
             if sitA == 0:
-                mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбрана карта объектов группы A'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана карта объектов группы A'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
                 return
             elif sitB == 0:
-                mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбрана карта объектов группы B'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана карта объектов группы B'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
                 return
 
         semFrom = semNameA.get()
         semTo   = semNameB.get()
 
         if len(semFrom) == 0 and len(semTo) == 0:
-            mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбраны сохраняемые семантики объектов'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбраны сохраняемые семантики объектов'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
             return
         else:
             if len(semFrom) == 0:
-                mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбрана семантика объектов группы A'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана семантика объектов группы A'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
                 return
             elif len(semTo) == 0:
-                mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбрана семантика объектов группы B'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана семантика объектов группы B'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
                 return
 
         files = [('CSV', '*.csv')]
         outputFileName = asksaveasfilename(filetypes = files, defaultextension = files)
 
         if len(outputFileName) == 0:
-            mapapi.mapMessageBoxUn(mapsyst.WTEXT('Не выбран файл для сохранения данных'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбран файл для сохранения данных'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
             return
 
         graphPathfinder = GraphPathfinder(hmap,sitA,semFrom,sitB,semTo,sitGraph)

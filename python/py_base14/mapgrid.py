@@ -20,7 +20,7 @@ def CreateGridLines(hmap:maptype.HMAP,mmstep:ctypes.c_int) -> ctypes.c_int:
     y1 = frame.Y1
     x2 = frame.X2
     y2 = frame.Y2	
-    hwork = mapapi.mapCreateObject(hmap)
+    hwork = mapapi.mapCreateObject(hmap, 1, maptype.IDDOUBLE2, 0)
     imgl = mapgdi.IMGLINE(0,0)  
     imgl.Thick = 100
     imgl.Color = 0 

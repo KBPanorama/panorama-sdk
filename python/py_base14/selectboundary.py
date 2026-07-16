@@ -14,11 +14,11 @@ def SearchBoundary(hmap:maptype.HMAP, hsite:maptype.HSITE) -> float:
         return 0
 
     maxdistance = 10.0
-    info1 = sitapi.mapCreateSiteObject(hmap, hsite)                       # Создать пустые объекты 
-    info2 = sitapi.mapCreateSiteObject(hmap, hsite)
+    info1 = sitapi.mapCreateSiteObject(hmap, hsite, maptype.IDDOUBLE2, 0) # Создать пустые объекты 
+    info2 = sitapi.mapCreateSiteObject(hmap, hsite, maptype.IDDOUBLE2, 0)
     typecode = 1018
 
-    seekapi.mapSetTotalSeekAccess(hmap, 0)                                # Очистить условия общего поиска перед заполнением списков 
+    seekapi.mapSetTotalSeekAccess(hmap, 0)                                # Очистить условия общего поиска перед заполнением списков   
     mapname = mapsyst.WTEXT(1024)                                         # Строка для размещения номенклатуры
     sitapi.mapGetSiteSheetNameUn(hmap, hsite, 1, mapname, mapname.size()) # Запросить номенклатуру
     objcount = sitapi.mapGetSiteObjectCount(hmap, hsite) + 1              # Количество объектов на карте

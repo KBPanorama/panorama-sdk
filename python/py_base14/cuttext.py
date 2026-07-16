@@ -41,7 +41,7 @@ def CutSemantics(hmap:maptype.HMAP, hobj:maptype.HOBJ, code:ctypes.c_int, startp
     if seekcount == 0:
         mapapi.mapErrorMessageUn(maperr.IDS_OBJECTSNOTSELECTED, title)
         return 0
-    hwork = mapapi.mapCreateObject(hmap)
+    hwork = mapapi.mapCreateObject(hmap, 1, maptype.IDDOUBLE2, 0)
     percent = int(0)
     objcount = 0
     hprogress = 0
@@ -63,9 +63,9 @@ def CutSemantics(hmap:maptype.HMAP, hobj:maptype.HOBJ, code:ctypes.c_int, startp
         mapapi.mapFreeObject(hwork)
     if hprogress != 0:
         mapapi.mapCloseProgressBar(hprogress)
-    logapi.mapLogCommitAction(hmap, hmap)
+    logapi.mapLogCommitActionEx(hmap, hmap, None)
     mestext = 'Обработано объектов: ' + str(objcount) 
-    mapapi.mapMessageBoxUn(mestext,title)
+    mapapi.mapMessageBoxUn(0, mapsyst.WTEXT(mestext), mapsyst.WTEXT(title), maptype.MB_OK)
     return objcount
 
 # Remove piece of text in string semantics
