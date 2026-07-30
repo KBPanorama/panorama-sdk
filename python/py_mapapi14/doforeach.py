@@ -64,7 +64,7 @@ class DoForEach:
             mapapi.mapErrorMessageUn(maperr.IDS_OBJECTSNOTSELECTED, _function.__name__)
             return 0
 
-        hwork = mapapi.mapCreateObject(hmap)
+        hwork = mapapi.mapCreateObject(hmap, 1, maptype.IDDOUBLE2, 0)
         percent = int(0)
         hprogress = 0
         if self.__seekcount > 100:
@@ -96,7 +96,7 @@ class DoForEach:
                     if ret == -1:     # Оператор требует завершить выполнение процедуры  (__objcount < __seekcount)
                         break
         if self.__actiontype != 0:
-            logapi.mapLogCommitAction(hmap, hmap)
+            logapi.mapLogCommitActionEx(hmap, hmap, None)
         if hprogress != 0:
             mapapi.mapCloseProgressBar(hprogress)
         if hwork != 0:

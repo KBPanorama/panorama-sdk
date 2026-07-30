@@ -8,6 +8,7 @@ HCAM         = ctypes.c_void_p
 HTOPIC       = ctypes.c_void_p
 HEVENTDB     = ctypes.c_void_p
 HEVENTFILT   = ctypes.c_void_p
+HCAMEVENT    = ctypes.c_void_p
 
 # Минимальный размер строковых полей
 STRFIELDSIZE = 64

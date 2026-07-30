@@ -22,6 +22,10 @@ IMG_RECT   = 139  # Квадрат
 IMG_CIRCLE = 140  # Окружность
 IMG_TEXT   = 142  # Подпись
 
+IMLPARMCOUNT = 32; # Число примитивов (переменное)
+IMLLISTCOUNT = 64  # Число функций (переменное)
+
+
 PACK_WIDTH = 1
 
 #-----------------------------
@@ -841,6 +845,30 @@ class IMGSQUAREGLASSCOLOR(ctypes.Structure):
     _fields_ = [("Color",ctypes.c_int),
                 ("Bright",ctypes.c_int),
                 ("Contrast",ctypes.c_int)]
+#-----------------------------
+
+
+#-----------------------------
+class IMLPARM(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [
+        ("Ident", ctypes.c_int),
+        ("Count", ctypes.c_int),
+        ("Semantic", ctypes.c_char),
+        ("Show4D", ctypes.c_char),
+        ("Reserv2", ctypes.c_char),
+        ("Reserv3", ctypes.c_char),
+        ("Element", ctypes.c_char * IMLPARMCOUNT)]
+#-----------------------------
+
+
+#-----------------------------
+class IMLLIST(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [
+        ("Ident", ctypes.c_int),
+        ("Count", ctypes.c_int),
+        ("Element", ctypes.c_char * IMLLISTCOUNT)]
 #-----------------------------
 
 

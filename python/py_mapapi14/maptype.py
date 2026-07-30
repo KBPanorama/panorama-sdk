@@ -38,6 +38,7 @@ HMAPDOC      = ctypes.c_void_p   # Указатель на TMapWindow
 HOBJSET      = ctypes.c_void_p   # Указатель на TObjectSet
 HOBJLISTSEEK = ctypes.c_void_p   # Указатель на TSeekList
 HFORMULA     = ctypes.c_void_p   # Указатель на TStrFormula
+HSEMRECORD   = ctypes.c_byte     # Указатель на TSemanticRecord
 
 HMTR3D       = ctypes.c_void_p   # Указатель на TMtr3D
 HMTL3D       = ctypes.c_void_p   # Указатель на TMtr3D
@@ -58,6 +59,8 @@ HALS         = ctypes.c_void_p   # Идентификатор списка ра�
 HEDTLINE     = ctypes.c_void_p   # Класс работы с линейкой шаблонов
 HWFS         = ctypes.c_void_p   # Идентификатор WFS-сервиса
 HGMLCLASS    = ctypes.c_void_p
+
+HOBJLIST     = ctypes.c_void_p
 
 # callback - типы
 BREAKCALLEX     = ctypes.c_void_p     
@@ -176,7 +179,6 @@ PS_BETWEEN = 5   #  Лежит на отрезке (между точками)
 PS_LEFT    = 6   #  Слева
 PS_RIGHT   = 7   #  Справа
 
-
 DWORD     = ctypes.c_uint
 COLORREF  = DWORD
 HMESSAGE  = ctypes.c_void_p
@@ -186,11 +188,33 @@ HPALETTE  = ctypes.c_void_p
 HWND      = ctypes.c_void_p
 HBITMAP   = ctypes.c_void_p
 
+GENERIC_READ  = 0x100000
+GENERIC_WRITE = 0x0001
 
 PACK_WIDTH = 1
 
 #-----------------------------
 class LOGFONT(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("lfHeight",ctypes.c_long),
+                ("lfWidth",ctypes.c_long),
+                ("lfEscapement",ctypes.c_long),
+                ("lfOrientation",ctypes.c_long),
+                ("lfWeight",ctypes.c_long),
+                ("lfItalic",ctypes.c_byte),
+                ("lfUnderline",ctypes.c_byte),
+                ("lfStrikeOut",ctypes.c_byte),
+                ("lfCharSet",ctypes.c_byte),
+                ("lfOutPrecision",ctypes.c_byte),
+                ("lfClipPrecision",ctypes.c_byte),
+                ("lfQuality",ctypes.c_byte),
+                ("lfPitchAndFamily",ctypes.c_byte),
+                ("lfFaceName",WCHAR1*LF_FACESIZE)]
+#-----------------------------
+
+
+#-----------------------------
+class LOGFONTW(ctypes.Structure):
     _pack_ = PACK_WIDTH
     _fields_ = [("lfHeight",ctypes.c_long),
                 ("lfWidth",ctypes.c_long),
@@ -388,6 +412,27 @@ class BOX(ctypes.Structure):
 
 
 #-----------------------------
+class CMYKCOLOR(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("C",ctypes.c_byte),
+                ("M",ctypes.c_byte),
+                ("Y",ctypes.c_byte),
+                ("K",ctypes.c_byte)]
+#-----------------------------
+
+
+#-----------------------------
+class TABCOLORSITEM(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("GroupId",ctypes.c_int),
+                ("RgbColor",ctypes.c_uint),
+                ("Cmyk",CMYKCOLOR),
+                ("Flags",ctypes.c_uint),
+                ("Name",WCHAR*(80))]
+#-----------------------------
+
+
+#-----------------------------
 class POLYDATAEX(ctypes.Structure):
     _pack_ = PACK_WIDTH
     _fields_ = [("Points",ctypes.POINTER(DRAWPOINT)),
@@ -420,6 +465,13 @@ class DRAWOBJECT(ctypes.Structure):
     _pack_ = PACK_WIDTH
     _fields_ = [("Draw",HDRAW),
                 ("Select",HSELECT)]
+#-----------------------------
+
+
+#-----------------------------
+class TABCMYK(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("Cmyk",CMYKCOLOR*(256))]
 #-----------------------------
 
 
@@ -628,6 +680,13 @@ class MTR3DVIEWEX(MTR3DVIEWBASE):
 
 #-----------------------------
 class MTR3DVIEWUN(MTR3DVIEWBASE):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("Name",WCHAR1)]
+#-----------------------------
+
+
+#-----------------------------
+class MTL3DVIEWUN(MTR3DVIEWBASE):
     _pack_ = PACK_WIDTH
     _fields_ = [("Name",WCHAR1)]
 #-----------------------------
@@ -1100,6 +1159,17 @@ class CONTROLITEM(ctypes.Structure):
 
 
 #-----------------------------
+class RSCCREATE(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("Name",ctypes.c_char*(32)),
+                ("Type",ctypes.c_char*(32)),
+                ("Code",ctypes.c_char*(8)),
+                ("Scale",ctypes.c_int),
+                ("Language",ctypes.c_int)]
+#-----------------------------
+
+
+#-----------------------------
 class RSCCREATEUN(ctypes.Structure):
     _pack_ = PACK_WIDTH
     _fields_ = [("Name",WCHAR1),
@@ -1107,6 +1177,13 @@ class RSCCREATEUN(ctypes.Structure):
                 ("Code",WCHAR1),
                 ("Scale",ctypes.c_int),
                 ("Language",ctypes.c_int)]
+#-----------------------------
+
+
+#-----------------------------
+class RSCOBJECT(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("Name",ctypes.c_char*(32))]
 #-----------------------------
 
 
@@ -1206,6 +1283,14 @@ class APPLYSEMANTIC(ctypes.Structure):
     _fields_ = [("Possible",ctypes.c_int),
                 ("Must",ctypes.c_int),
                 ("Image",ctypes.c_int)]
+#-----------------------------
+
+
+#-----------------------------
+class TGROUPSEMITEM(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("Code", ctypes.c_uint),
+                ("Flag", ctypes.c_uint)]
 #-----------------------------
 
 
@@ -1761,6 +1846,44 @@ class FITTEXT(ctypes.Structure):
                 ("Reserve",ctypes.c_int*(4))]
 #-----------------------------
 
+
+#-----------------------------
+class IMPORTRASTERSPARAM(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("CompressMethod",ctypes.c_int),
+                ("CompressValue",ctypes.c_int),
+                ("FlagTiffAccess",ctypes.c_int),
+                ("FlagIgnoreGeoTag",ctypes.c_int),
+                ("Reserve",ctypes.c_char*(256))]
+#-----------------------------
+
+
+#-----------------------------
+class EXPORTMATRIXPARAM(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("TileWidth",ctypes.c_int),
+                ("TileHeight",ctypes.c_int),
+                ("BigFile",ctypes.c_int),
+                ("PixelType",ctypes.c_int),
+                ("Compress",ctypes.c_int),
+                ("DeflateLevel",ctypes.c_int),
+                ("ClearAreaOutBorder",ctypes.c_int),
+                ("UseFrame",ctypes.c_int),
+                ("UsePseudoCode",ctypes.c_int),
+                ("Reserve",ctypes.c_int*(45)),
+                ("PseudoCode",ctypes.c_double),
+                ("Frame",DFRAME)]
+#-----------------------------
+
+
+#-----------------------------
+class OBJFROMRSC(ctypes.Structure):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("hSelect",HSELECT),
+                ("MapSelect",ctypes.c_int),
+                ("Regime",ctypes.c_int),
+                ("Repeat",ctypes.c_int)]
+#-----------------------------
 
 try:
     if os.environ['gisaccesdll']:

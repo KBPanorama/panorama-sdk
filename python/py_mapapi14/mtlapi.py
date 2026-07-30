@@ -1,10 +1,27 @@
 #!/usr/bin/env python3
 
+"""
+.. code-block:: none
+
+    ********************************************************************
+    *                                                                  *
+    *              Copyright (c) PANORAMA Group 1991-2026              *
+    *                      All Rights Reserved                         *
+    *                                                                  *
+    ********************************************************************
+    *                                                                  *
+    *            Описание функций доступа к матрице слоев              *
+    *                                                                  *
+    ********************************************************************
+    
+"""
+
 import os
 import ctypes
-import maptype
 import mapsyst
+import maptype
 import mapcreat
+import mapgdi
 
 PACK_WIDTH = 1
 
@@ -30,57 +47,15 @@ class BUILDMTL(ctypes.Structure):
                 ("CodeCount",ctypes.c_int),
                 ("MtdPointFormat",ctypes.c_int),
                 ("BigFormat",ctypes.c_int),
-                ("Reserve",ctypes.c_char*64)]
-#-----------------------------
-
-
-#-----------------------------
-class MTLBUILDPARM(ctypes.Structure):
-    _pack_ = PACK_WIDTH
-    _fields_ = [("StructSize",ctypes.c_ulong),
-                ("BeginX",ctypes.c_double),
-                ("BeginY",ctypes.c_double),
-                ("EndX",ctypes.c_double),
-                ("EndY",ctypes.c_double),
-                ("ElemSizeMeters",ctypes.c_double),
-                ("LayerCount",ctypes.c_int),
-                ("LayerForm",ctypes.c_int),
-                ("HeightSizeBytes",ctypes.c_int),
-                ("LayerSizeBytes",ctypes.c_int),
-                ("HeightMeasure",ctypes.c_int),
-                ("LayerMeasure",ctypes.c_int),
-                ("UserType",ctypes.c_int),
-                ("Scale",ctypes.c_int),
-                ("Reserve",ctypes.c_char*52)]
-#-----------------------------
-
-
-#-----------------------------
-class MTLDESCRIBE(ctypes.Structure):
-    _pack_ = PACK_WIDTH
-    _fields_ = [("Name",ctypes.c_char*260),
-                ("MaterialFileName",ctypes.c_char*260),
-                ("LayerCount",ctypes.c_long),
-                ("MaterialCount",ctypes.c_long),
-                ("ElementInPlane",ctypes.c_double),
-                ("FrameMeters",maptype.DFRAME),
-                ("MinHeightValue",ctypes.c_double),
-                ("MaxHeightValue",ctypes.c_double),
-                ("BotLevelHeight",ctypes.c_double),
-                ("UserType",ctypes.c_long),
-                ("View",ctypes.c_long),
-                ("UserLabel",ctypes.c_long),
-                ("ReliefPresence",ctypes.c_long),
-                ("MaxSummaryPower",ctypes.c_double),
-                ("Reserve",ctypes.c_char*408)]
+                ("Reserve",ctypes.c_char*(64))]
 #-----------------------------
 
 
 #-----------------------------
 class MTLDESCRIBEUN(ctypes.Structure):
     _pack_ = PACK_WIDTH
-    _fields_ = [("Name",maptype.WCHAR1*(maptype.MAX_PATH_LONG*2)),
-                ("MaterialFileName",maptype.WCHAR1*(maptype.MAX_PATH_LONG*2)),
+    _fields_ = [("Name",maptype.WCHAR1*(2048)),
+                ("MaterialFileName",maptype.WCHAR1*(2048)),
                 ("FrameMeters",maptype.DFRAME),
                 ("ElementInPlane",ctypes.c_double),
                 ("MinHeightValue",ctypes.c_double),
@@ -93,8 +68,10 @@ class MTLDESCRIBEUN(ctypes.Structure):
                 ("View",ctypes.c_int),
                 ("UserLabel",ctypes.c_int),
                 ("ReliefPresence",ctypes.c_int),
-                ("Reserve",ctypes.c_char*64)]
+                ("Reserve",ctypes.c_char*(64))]
 #-----------------------------
+
+
 
 
 try:
@@ -103,1069 +80,1462 @@ try:
 except KeyError:
     gisaccesname = 'gis64acces.dll'
 
-
 try:
     acceslib = mapsyst.LoadLibrary(gisaccesname)
-
-
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# +++++ ОПИСАНИЕ ФУНКЦИЙ ДОСТУПА К МАТРИЦАМ СЛОЕВ +++++++++
-# +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-# Открыть матричные данные
-# Возвращает идентификатор открытой матричной карты (TMapAccess#)
-# mtrname - имя открываемого файла
-# mode - режим чтения/записи (GENERIC_READ, GENERIC_WRITE или 0)
-# GENERIC_READ - все данные только на чтение
-# При ошибке возвращает ноль
-
-    mapOpenMtl_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapOpenMtl', ctypes.c_char_p, ctypes.c_int)
-    def mapOpenMtl(_mtrname: ctypes.c_char_p, _mode: int = 0) -> maptype.HMAP:
-        return mapOpenMtl_t (_mtrname, _mode)
-
-    mapOpenMtlUn_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapOpenMtlUn', maptype.PWCHAR, ctypes.c_int)
-    def mapOpenMtlUn(_mtrname: mapsyst.WTEXT, _mode: int = 0) -> maptype.HMAP:
-        return mapOpenMtlUn_t (_mtrname.buffer(), _mode)
-
-
-# Открыть матричные данные в заданном районе работ
-# (добавить в цепочку матриц)
-# Возвращает номер файла в цепочке матриц
-# hMap - идентификатор открытой основной карты
-# mtrname - имя открываемого файла
-# mode - режим чтения/записи (GENERIC_READ, GENERIC_WRITE или 0)
-# GENERIC_READ - все данные только на чтение
-# При ошибке возвращает ноль
-
-    mapOpenMtlForMap_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapOpenMtlForMap', maptype.HMAP, ctypes.c_char_p, ctypes.c_int)
-    def mapOpenMtlForMap(_hMap: maptype.HMAP, _mtrname: ctypes.c_char_p, _mode: int) -> int:
-        return mapOpenMtlForMap_t (_hMap, _mtrname, _mode)
-
-    mapOpenMtlForMapUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapOpenMtlForMapUn', maptype.HMAP, maptype.PWCHAR, ctypes.c_int)
-    def mapOpenMtlForMapUn(_hMap: maptype.HMAP, _mtrname: mapsyst.WTEXT, _mode: int) -> int:
-        return mapOpenMtlForMapUn_t (_hMap, _mtrname.buffer(), _mode)
-
-
-# Закрыть матричные данные
-# hMap - идентификатор открытой основной карты
-# number - номер закрываемой матрицы в цепочке матриц
-# если number == 0, закрываются все матричные данные
-
-    mapCloseMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_void_p,'mapCloseMtl', maptype.HMAP, ctypes.c_int)
-    def mapCloseMtl(_hMap: maptype.HMAP, _number: int = 0) -> ctypes.c_void_p:
-        return mapCloseMtl_t (_hMap, _number)
-
-
-# Закрыть матричные данные в заданном районе работ
-# hMap - идентификатор открытой основной карты
-# number - номер матричного файла в цепочке
-# Если number == 0, закрываются все матричные данные
-# При ошибке возвращает ноль
-
-    mapCloseMtlForMap_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapCloseMtlForMap', maptype.HMAP, ctypes.c_int)
-    def mapCloseMtlForMap(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapCloseMtlForMap_t (_hMap, _number)
-
-
-# Построение матрицы на заданный участок района работ
-# При ошибке возвращает ноль
-# hMap    - идентификатор исходной карты для построения матрицы,
-# mtrname - полное имя файла создаваемой матрицы,
-# ininame - полное имя файла легенды создаваемой матрицы,
-# mtrparm - параметры создаваемой матрицы,
-# Структурa BUILDMTL описанa в mtlapi.h
-# hselect - идентификатор контекста отбора объектов карты,
-# handle  - идентификатор окна диалога, которому посылаются
-# сообщения о ходе процесса :
-#  0x0378 - сообщение о проценте выполненных работ (в WPARAM),
-#  если процесс должен быть принудительно завершен, в ответ
-#  должно вернуться значение 0x0378.
-# Если handle равно нулю - сообщения не посылаются.
-
-    mapBuildMtlEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapBuildMtlEx', maptype.HMAP, ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(BUILDMTL), maptype.HSELECT, maptype.HWND)
-    def mapBuildMtlEx(_hMap: maptype.HMAP, _mtrname: ctypes.c_char_p, _ininame: ctypes.c_char_p, _mtrparm: ctypes.POINTER(BUILDMTL), _hselect: maptype.HSELECT, _handle: maptype.HWND) -> int:
-        return mapBuildMtlEx_t (_hMap, _mtrname, _ininame, _mtrparm, _hselect, _handle)
-
-    mapBuildMtlUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapBuildMtlUn', maptype.HMAP, maptype.PWCHAR, maptype.PWCHAR, ctypes.POINTER(BUILDMTL), maptype.HSELECT, maptype.HWND)
-    def mapBuildMtlUn(_hMap: maptype.HMAP, _mtrname: mapsyst.WTEXT, _ininame: mapsyst.WTEXT, _mtrparm: ctypes.POINTER(BUILDMTL), _hselect: maptype.HSELECT, _handle: maptype.HWND) -> int:
-        return mapBuildMtlUn_t (_hMap, _mtrname.buffer(), _ininame.buffer(), _mtrparm, _hselect, _handle)
-
-
-# Построение матрицы на заданный участок района работ (устаревшая)
-# При ошибке возвращает ноль
-# hMap    - идентификатор исходной карты для построения матрицы,
-# mtrname - полное имя файла создаваемой матрицы,
-# ininame - полное имя файла легенды создаваемой матрицы,
-# mtrparm - параметры создаваемой матрицы,
-# Структурa MTLBUILDPARM описанa в mtlapi.h
-# hselect - идентификатор контекста отбора объектов карты,
-# handle  - идентификатор окна диалога, которому посылаются
-# сообщения о ходе процесса :
-#  0x0378 - сообщение о проценте выполненных работ (в WPARAM),
-#  если процесс должен быть принудительно завершен, в ответ
-#  должно вернуться значение 0x0378.
-# Если handle равно нулю - сообщения не посылаются.
-
-    mapBuildMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapBuildMtl', maptype.HMAP, ctypes.c_char_p, ctypes.c_char_p, ctypes.POINTER(MTLBUILDPARM), maptype.HSELECT, maptype.HWND)
-    def mapBuildMtl(_hMap: maptype.HMAP, _mtrname: ctypes.c_char_p, _ininame: ctypes.c_char_p, _mtrparm: ctypes.POINTER(MTLBUILDPARM), _hselect: maptype.HSELECT, _handle: maptype.HWND) -> int:
-        return mapBuildMtl_t (_hMap, _mtrname, _ininame, _mtrparm, _hselect, _handle)
-
-
-# Запросить описание файла матричных данных
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# describe - адрес структуры, в которой будет размещено
-# описание матрицы
-# Структурa MTLDESCRIBE описанa в mtlapi.h
-# При ошибке возвращает ноль
-
-    mapGetMtlDescribe_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlDescribe', maptype.HMAP, ctypes.c_int, ctypes.POINTER(MTLDESCRIBE))
-    def mapGetMtlDescribe(_hMap: maptype.HMAP, _number: int, _describe: ctypes.POINTER(MTLDESCRIBE)) -> int:
-        return mapGetMtlDescribe_t (_hMap, _number, _describe)
-
-    mapGetMtlDescribeUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlDescribeUn', maptype.HMAP, ctypes.c_int, ctypes.POINTER(MTLDESCRIBEUN))
-    def mapGetMtlDescribeUn(_hMap: maptype.HMAP, _number: int, _describe: ctypes.POINTER(MTLDESCRIBEUN)) -> int:
-        return mapGetMtlDescribeUn_t (_hMap, _number, _describe)
-
-
-# Запросить имя файла матричных данных
-# hMap - идентификатор открытой основной векторной карты
-# number - номер файла в цепочке
-# name - адрес строки для размещения результата
-# size - размер строки
-# При ошибке возвращает ноль
-
-    mapGetMtlNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlNameUn', maptype.HMAP, ctypes.c_int, maptype.PWCHAR, ctypes.c_int)
-    def mapGetMtlNameUn(_hMap: maptype.HMAP, _number: int, _name: mapsyst.WTEXT, _size: int) -> int:
-        return mapGetMtlNameUn_t (_hMap, _number, _name.buffer(), _size)
-
-
-# Запросить число открытых файлов матричных данных
-# hMap - идентификатор открытой основной карты
-# При ошибке возвращает ноль
-
-    mapGetMtlCount_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlCount', maptype.HMAP)
-    def mapGetMtlCount(_hMap: maptype.HMAP) -> int:
-        return mapGetMtlCount_t (_hMap)
-
-
-# Запросить номер матрицы в цепочке по имени файла
-# name - имя файла матрицы
-# В цепочке номера растров начинаются с 1.
-# При ошибке возвращает ноль
-
-    mapGetMtlNumberByName_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlNumberByName', maptype.HMAP, ctypes.c_char_p)
-    def mapGetMtlNumberByName(_hMap: maptype.HMAP, _name: ctypes.c_char_p) -> int:
-        return mapGetMtlNumberByName_t (_hMap, _name)
-
-    mapGetMtlNumberByNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlNumberByNameUn', maptype.HMAP, maptype.PWCHAR)
-    def mapGetMtlNumberByNameUn(_hMap: maptype.HMAP, _name: mapsyst.WTEXT) -> int:
-        return mapGetMtlNumberByNameUn_t (_hMap, _name.buffer())
-
-
-# Запросить максимальное количество слоев всех матриц MTL-цепочки
-# hMap - идентификатор открытой основной карты
-# При ошибке возвращает ноль
-
-    mapGetMaxLayerCount_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMaxLayerCount', maptype.HMAP)
-    def mapGetMaxLayerCount(_hMap: maptype.HMAP) -> int:
-        return mapGetMaxLayerCount_t (_hMap)
-
-
-# Запросить количество слоев матрицы с номером number в цепочке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetLayerCountOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetLayerCountOfMtl', maptype.HMAP, ctypes.c_int)
-    def mapGetLayerCountOfMtl(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetLayerCountOfMtl_t (_hMap, _number)
-
-
-# Запросить минимальную высоту нижнего уровня
-# hMap - идентификатор открытой основной карты
-# При ошибке возвращает ERRORHEIGHT
-
-    mapGetMinBotLevelHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetMinBotLevelHeight', maptype.HMAP)
-    def mapGetMinBotLevelHeight(_hMap: maptype.HMAP) -> float:
-        return mapGetMinBotLevelHeight_t (_hMap)
-
-
-# Запросить максимальную суммарную мощность слоев
-# hMap - идентификатор открытой основной карты
-# При ошибке возвращает ERRORPOWER
-
-    mapGetMaxSummaryPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetMaxSummaryPower', maptype.HMAP)
-    def mapGetMaxSummaryPower(_hMap: maptype.HMAP) -> float:
-        return mapGetMaxSummaryPower_t (_hMap)
-
-
-# Выбор значения абсолютной высоты в заданной точке.
-# hMap - идентификатор открытой основной карты
-# Координаты точки (x,y) задаются в метрах в системе координат
-# векторной карты. Возвращает значение высоты в метрах.
-# В случае ошибки при выборе высоты и в случае необеспеченности
-# заданной точки матричными данными возвращает ERRORHEIGHT.
-
-    mapGetElementHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementHeight', maptype.HMAP, ctypes.c_double, ctypes.c_double)
-    def mapGetElementHeight(_hMap: maptype.HMAP, _x: float, _y: float) -> float:
-        return mapGetElementHeight_t (_hMap, _x, _y)
-
-
-# Выбор значения абсолютной высоты в заданной точке из матрицы
-# с номером number в цепочке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Координаты точки (x,y) задаются в метрах в системе координат
-# векторной карты. Возвращает значение высоты в метрах.
-# В случае ошибки при выборе высоты и в случае необеспеченности
-# заданной точки матричными данными возвращает ERRORHEIGHT.
-
-    mapGetElementHeightOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementHeightOfMtl', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double)
-    def mapGetElementHeightOfMtl(_hMap: maptype.HMAP, _number: int, _x: float, _y: float) -> float:
-        return mapGetElementHeightOfMtl_t (_hMap, _number, _x, _y)
-
-
-# Выбор значения мощности слоя в заданной точке.
-# hMap - идентификатор открытой основной карты
-# layernumber - номер слоя
-# Координаты точки (x,y) задаются в метрах в системе координат
-# векторной карты. Возвращает значение мощности слоя в метрах.
-# В случае ошибки и в случае необеспеченности заданной
-# точки матричными данными возвращает ERRORPOWER.
-
-    mapGetElementPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementPower', maptype.HMAP, ctypes.c_double, ctypes.c_double, ctypes.c_long)
-    def mapGetElementPower(_hMap: maptype.HMAP, _x: float, _y: float, _layernumber: int) -> float:
-        return mapGetElementPower_t (_hMap, _x, _y, _layernumber)
-
-
-# Выбор значения мощности слоя в заданной точке из матрицы
-# с номером number в цепочке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# layernumber - номер слоя
-# Координаты точки (x,y) задаются в метрах в системе координат
-# векторной карты. Возвращает значение мощности слоя в метрах.
-# В случае ошибки и в случае необеспеченности заданной
-# точки матричными данными возвращает ERRORPOWER.
-
-    mapGetElementPowerOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementPowerOfMtl', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_long)
-    def mapGetElementPowerOfMtl(_hMap: maptype.HMAP, _number: int, _x: float, _y: float, _layernumber: int) -> float:
-        return mapGetElementPowerOfMtl_t (_hMap, _number, _x, _y, _layernumber)
-
-
-# Вычисление значений мощностей слоев в заданной точке
-# методом треугольников по матрице с номером number в цепочке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Координаты точки задаются в метрах в системе координат
-# векторной карты
-# powers - адрес массива для записи вычисленных значений
-#          мощностей (в метрах)
-# count - размер массива, должен быть не менее mapGetLayerCountOfMtl()
-# Возвращает количество заполненных элементов массива powers
-# При ошибке возвращает ноль.
-
-    mapGetElementPowersTriangleOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetElementPowersTriangleOfMtl', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.POINTER(ctypes.c_double), ctypes.c_int)
-    def mapGetElementPowersTriangleOfMtl(_hMap: maptype.HMAP, _number: int, _x: float, _y: float, _powers: ctypes.POINTER(ctypes.c_double), _count: int) -> int:
-        return mapGetElementPowersTriangleOfMtl_t (_hMap, _number, _x, _y, _powers, _count)
-
-
-# Вычисление значения мощности слоя layernumber в заданной точке
-# методом треугольников по матрице с номером number в цепочке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Координаты точки задаются в метрах в системе координат
-# векторной карты
-# layernumber - номер слоя
-# Возвращает значение мощности слоя в метрах.
-# При ошибке возвращает ERRORPOWER.
-
-    mapGetElementPowerTriangleOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementPowerTriangleOfMtl', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_int)
-    def mapGetElementPowerTriangleOfMtl(_hMap: maptype.HMAP, _number: int, _x: float, _y: float, _layernumber: int) -> float:
-        return mapGetElementPowerTriangleOfMtl_t (_hMap, _number, _x, _y, _layernumber)
-
-
-# Занесение значения абсолютной высоты в элемент матрицы,
-# соответствующий заданной точке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Координаты точки (x,y) и значение высоты (h) задаются в метрах
-# в системе координат векторной карты.
-# В случае ошибки возвращает ноль.
-
-    mapPutElementHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapPutElementHeight', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double)
-    def mapPutElementHeight(_hMap: maptype.HMAP, _number: int, _x: float, _y: float, _h: float) -> int:
-        return mapPutElementHeight_t (_hMap, _number, _x, _y, _h)
-
-
-# Занесение значения мощности слоя layernumber в элемент,
-# соответствующий заданной точке.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Координаты точки (x,y) и значение мощности (power) задаются
-# в метрах в системе координат векторной карты
-# layernumber - номер слоя
-# В случае ошибки возвращает ноль.
-
-    mapPutElementPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapPutElementPower', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_int)
-    def mapPutElementPower(_hMap: maptype.HMAP, _number: int, _x: float, _y: float, _power: float, _layernumber: int) -> int:
-        return mapPutElementPower_t (_hMap, _number, _x, _y, _power, _layernumber)
-
-
-# Запросить номер в цепочке для матрицы, расположенной
-# в заданной точке
-# hMap - идентификатор открытой основной карты
-# number - порядковый номер, найденной матрицы в точке
-# (1 - первая в данной точке, 2 - вторая ...)
-# В случае ошибки возвращает ноль.
-
-    mapGetMtlNumberInPoint_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlNumberInPoint', maptype.HMAP, ctypes.c_double, ctypes.c_double, ctypes.c_int)
-    def mapGetMtlNumberInPoint(_hMap: maptype.HMAP, _x: float, _y: float, _number: int) -> int:
-        return mapGetMtlNumberInPoint_t (_hMap, _x, _y, _number)
-
-
-# Запросить номер в цепочке последней открытой матрицы
-# с установленным (равным 1) признаком видимости.
-# hMap - идентификатор открытой основной карты
-# В случае ошибки возвращает ноль.
-
-    mapGetMtlNumberLastVisible_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlNumberLastVisible', maptype.HMAP)
-    def mapGetMtlNumberLastVisible(_hMap: maptype.HMAP) -> int:
-        return mapGetMtlNumberLastVisible_t (_hMap)
-
-
-# Запросить размер полного блока матрицы в байтах
-# hMap - идентификатор открытой основной карты
-# number - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlBlockSize_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlBlockSize', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlBlockSize(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlBlockSize_t (_hMap, _number)
-
-
-# Запросить вертикальный размер блока матрицы в элементах
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlBlockSide_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlBlockSide', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlBlockSide(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlBlockSide_t (_hMap, _number)
-
-
-# Запросить число строк блоков матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlBlockRow_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlBlockRow', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlBlockRow(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlBlockRow_t (_hMap, _number)
-
-
-# Запросить число столбцов блоков матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlBlockColumn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlBlockColumn', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlBlockColumn(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlBlockColumn_t (_hMap, _number)
-
-
-# Запросить число строк элементов в матрице
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlElementRow_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlElementRow', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlElementRow(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlElementRow_t (_hMap, _number)
-
-
-# Запросить число столбцов элементов в матрице
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlElementColumn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlElementColumn', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlElementColumn(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlElementColumn_t (_hMap, _number)
-
-
-# Выбор массива значений абсолютных высот, соответствующих
-# логическим элементам, лежащим на заданном отрезке.
-# hMap - идентификатор открытой основной карты
-# Координаты точек, задающих начало и конец отрезка
-# (FirstPoint,SecondPoint) задаются в метрах в системе
-# координат векторной карты.
-# Размер массива высот, заданного адресом HeightArray,
-# должен соответствовать запрашиваемому количеству высот
-# (HeightCount), в противном случае возможны ошибки работы
-# с памятью.
-# В случае необеспеченности логического элемента матричными
-# данными его значение равно ERRORHEIGHT (-111111.0 м)
-# В случае ошибки при выборе высот возвращает ноль.
-
-    mapGetHeightArrayFromMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetHeightArrayFromMtl', maptype.HMAP, ctypes.POINTER(ctypes.c_double), ctypes.c_int, ctypes.POINTER(maptype.DOUBLEPOINT), ctypes.POINTER(maptype.DOUBLEPOINT))
-    def mapGetHeightArrayFromMtl(_hMap: maptype.HMAP, _HeightArray: ctypes.POINTER(ctypes.c_double), _HeightCount: int, _FirstPoint: ctypes.POINTER(maptype.DOUBLEPOINT), _SecondPoint: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
-        return mapGetHeightArrayFromMtl_t (_hMap, _HeightArray, _HeightCount, _FirstPoint, _SecondPoint)
-
-
-# Выбор значения цвета слоя layernumber
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# layernumber - номер слоя
-# В случае ошибки возвращает ноль.
-
-    mapGetLayerColor_t = mapsyst.GetProcAddress(acceslib,maptype.COLORREF,'mapGetLayerColor', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapGetLayerColor(_hMap: maptype.HMAP, _number: int, _layernumber: int) -> maptype.COLORREF:
-        return mapGetLayerColor_t (_hMap, _number, _layernumber)
-
-
-# Выбор максимальной мощности слоя layernumber в метрах.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# layernumber - номер слоя
-# В случае ошибки возвращает ноль.
-
-    mapGetMaxLayerHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMaxLayerHeight', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapGetMaxLayerHeight(_hMap: maptype.HMAP, _number: int, _layernumber: int) -> int:
-        return mapGetMaxLayerHeight_t (_hMap, _number, _layernumber)
-
-
-# Установка максимальной мощности слоя layernumber в метрах.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# layernumber - номер слоя
-# В случае ошибки возвращает ноль.
-
-    mapSetMaxLayerHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMaxLayerHeight', maptype.HMAP, ctypes.c_int, ctypes.c_int, ctypes.c_int)
-    def mapSetMaxLayerHeight(_hMap: maptype.HMAP, _number: int, _layernumber: int, _maxlayerheight: int) -> int:
-        return mapSetMaxLayerHeight_t (_hMap, _number, _layernumber, _maxlayerheight)
-
-
-# Установка значения цвета слоя layernumber.
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# layernumber - номер слоя
-# В случае ошибки возвращает ноль.
-
-    mapSetLayerColor_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetLayerColor', maptype.HMAP, ctypes.c_int, ctypes.c_int, maptype.COLORREF)
-    def mapSetLayerColor(_hMap: maptype.HMAP, _number: int, _layernumber: int, _layercolor: maptype.COLORREF) -> int:
-        return mapSetLayerColor_t (_hMap, _number, _layernumber, _layercolor)
-
-
-# Запросить данные о проекции матричных данных
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# projectiondata - адрес структуры, в которой будут размещены
-# данные о проекции
-# Структурa MTRPROJECTIONDATA описанa в maptype.h
-# При ошибке возвращает ноль
-
-    mapGetMtlProjectionData_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlProjectionData', maptype.HMAP, ctypes.c_int, ctypes.POINTER(maptype.MTRPROJECTIONDATA))
-    def mapGetMtlProjectionData(_hMap: maptype.HMAP, _number: int, _projectiondata: ctypes.POINTER(maptype.MTRPROJECTIONDATA)) -> int:
-        return mapGetMtlProjectionData_t (_hMap, _number, _projectiondata)
-
-
-# Создать матричную карту
-# mtrname - полное имя файла матрицы
-# mtrparm - параметры создаваемой матрицы
-# Структурa BUILDMTL описанa в mtlapi.h
-# Возвращает идентификатор открытой матричной карты (TMapAccess#)
-# При ошибке возвращает ноль
-
-    mapCreateMtlEx_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapCreateMtlEx', ctypes.c_char_p, ctypes.POINTER(BUILDMTL))
-    def mapCreateMtlEx(_mtrname: ctypes.c_char_p, _mtrparm: ctypes.POINTER(BUILDMTL)) -> maptype.HMAP:
-        return mapCreateMtlEx_t (_mtrname, _mtrparm)
-
-    mapCreateMtlUn_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapCreateMtlUn', maptype.PWCHAR, ctypes.POINTER(BUILDMTL))
-    def mapCreateMtlUn(_mtrname: mapsyst.WTEXT, _mtrparm: ctypes.POINTER(BUILDMTL)) -> maptype.HMAP:
-        return mapCreateMtlUn_t (_mtrname.buffer(), _mtrparm)
-
-
-# Создать файл матрицы
-# hMap - идентификатор открытой основной карты
-# mtrname - полное имя файла матрицы
-# mtrparm - параметры создаваемой матрицы
-# mtrprojectiondata - параметры проекции создаваемой матрицы
-# Структурa BUILDMTL описанa в mtlapi.h
-# Структурa MTRPROJECTIONDATA описанa в maptype.h
-# Возвращает номер файла в цепочке матриц
-# При ошибке возвращает ноль
-
-    mapCreateAndAppendMtlEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapCreateAndAppendMtlEx', maptype.HMAP, ctypes.c_char_p, ctypes.POINTER(BUILDMTL), ctypes.POINTER(maptype.MTRPROJECTIONDATA))
-    def mapCreateAndAppendMtlEx(_hMap: maptype.HMAP, _mtrname: ctypes.c_char_p, _mtrparm: ctypes.POINTER(BUILDMTL), _mtrprojectiondata: ctypes.POINTER(maptype.MTRPROJECTIONDATA)) -> int:
-        return mapCreateAndAppendMtlEx_t (_hMap, _mtrname, _mtrparm, _mtrprojectiondata)
-
-    mapCreateAndAppendMtlUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapCreateAndAppendMtlUn', maptype.HMAP, maptype.PWCHAR, ctypes.POINTER(BUILDMTL), ctypes.POINTER(maptype.MTRPROJECTIONDATA))
-    def mapCreateAndAppendMtlUn(_hMap: maptype.HMAP, _mtrname: mapsyst.WTEXT, _mtrparm: ctypes.POINTER(BUILDMTL), _mtrprojectiondata: ctypes.POINTER(maptype.MTRPROJECTIONDATA)) -> int:
-        return mapCreateAndAppendMtlUn_t (_hMap, _mtrname.buffer(), _mtrparm, _mtrprojectiondata)
-
-
-# Создать матричную карту (устаревшая)
-# mtrname - полное имя файла матрицы
-# mtrparm - параметры создаваемой матрицы
-# Возвращает идентификатор открытой матричной карты (TMapAccess#)
-# Структурa MTLBUILDPARM описанa в mtlapi.h
-# При ошибке возвращает ноль
-
-    mapCreateMtl_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapCreateMtl', ctypes.c_char_p, ctypes.POINTER(MTLBUILDPARM))
-    def mapCreateMtl(_mtrname: ctypes.c_char_p, _mtrparm: ctypes.POINTER(MTLBUILDPARM)) -> maptype.HMAP:
-        return mapCreateMtl_t (_mtrname, _mtrparm)
-
-
-# Создать файл матрицы (устаревшая)
-# hMap - идентификатор открытой основной карты
-# mtrname - полное имя файла матрицы
-# mtrparm - параметры создаваемой матрицы
-# mtrprojectiondata - параметры проекции создаваемой матрицы
-# Структурa MTLBUILDPARM описанa в mtlapi.h
-# Структурa MTRPROJECTIONDATA описанa в maptype.h
-# Возвращает  номер файла в цепочке матриц
-# При ошибке возвращает ноль
-
-    mapCreateAndAppendMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapCreateAndAppendMtl', maptype.HMAP, ctypes.c_char_p, ctypes.POINTER(MTLBUILDPARM), ctypes.POINTER(maptype.MTRPROJECTIONDATA))
-    def mapCreateAndAppendMtl(_hMap: maptype.HMAP, _mtrname: ctypes.c_char_p, _mtrparm: ctypes.POINTER(MTLBUILDPARM), _mtrprojectiondata: ctypes.POINTER(maptype.MTRPROJECTIONDATA)) -> int:
-        return mapCreateAndAppendMtl_t (_hMap, _mtrname, _mtrparm, _mtrprojectiondata)
-
-
-# Записать изменения матрицы в файл
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapSaveMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSaveMtl', maptype.HMAP, ctypes.c_int)
-    def mapSaveMtl(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapSaveMtl_t (_hMap, _number)
-
-
-# Установить диапазон отображаемых элементов матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# minvalue - минимальное значение отображаемого элемента
-#            в единицах матрицы
-# maxvalue - максимальное значение отображаемого элемента
-#            в единицах матрицы
-# При ошибке возвращает 0
-
-    mapSetMtlShowRange_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlShowRange', maptype.HMAP, ctypes.c_int, ctypes.c_double, ctypes.c_double)
-    def mapSetMtlShowRange(_hMap: maptype.HMAP, _number: int, _minvalue: float, _maxvalue: float) -> int:
-        return mapSetMtlShowRange_t (_hMap, _number, _minvalue, _maxvalue)
-
-
-# Установить нижний уровень слоев матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# botlevel - нижний уровень слоев в метрах
-# При ошибке возвращает 0
-
-    mapSetMtlBotLevel_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlBotLevel', maptype.HMAP, ctypes.c_int, ctypes.c_double)
-    def mapSetMtlBotLevel(_hMap: maptype.HMAP, _number: int, _botlevel: float) -> int:
-        return mapSetMtlBotLevel_t (_hMap, _number, _botlevel)
-
-
-# Установить максимальную суммарную мощность слоев матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# maxsummarypower - максимальная суммарная мощность в метрах
-# При ошибке возвращает 0
-
-    mapSetMtlMaxSummaryPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlMaxSummaryPower', maptype.HMAP, ctypes.c_int, ctypes.c_double)
-    def mapSetMtlMaxSummaryPower(_hMap: maptype.HMAP, _number: int, _maxsummarypower: float) -> int:
-        return mapSetMtlMaxSummaryPower_t (_hMap, _number, _maxsummarypower)
-
-
-# Установить данные о проекции матричных данных
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# mapregister - адрес структуры, содержащей данные о проекции
-# Структуры MAPREGISTEREX, DATUMPARAM, ELLIPSOIDPARAM описаны в mapcreat.h
-# ttype  - тип локального преобразования координат (см. TRANSFORMTYPE в mapcreat.h) или 0
-# tparm - параметры локального преобразования координат (см. mapcreat.h)
-# При ошибке возвращает ноль
-
-    mapSetMtlProjectionDataPro_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlProjectionDataPro', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.c_int, ctypes.POINTER(mapcreat.LOCALTRANSFORM))
-    def mapSetMtlProjectionDataPro(_hMap: maptype.HMAP, _number: int, _mapregister: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: int, _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
-        return mapSetMtlProjectionDataPro_t (_hMap, _number, _mapregister, _datumparam, _ellipsoidparam, _ttype, _tparm)
-
-    mapSetMtlProjectionData_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlProjectionData', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.MAPREGISTEREX))
-    def mapSetMtlProjectionData(_hMap: maptype.HMAP, _number: int, _mapregister: ctypes.POINTER(mapcreat.MAPREGISTEREX)) -> int:
-        return mapSetMtlProjectionData_t (_hMap, _number, _mapregister)
-
-
-# Запросить данные о проекции матрицы
-# hMap   - идентификатор открытой основной векторной карты
-# number - номер файла в цепочке
-# mapregister - адрес структуры, в которой будут размещены
-# данные о проекции
-# Структурa MAPREGISTEREX описанa в mapcreat.h
-# ttype  - тип локального преобразования координат (см. TRANSFORMTYPE в mapcreat.h) или 0
-# tparm - параметры локального преобразования координат (см. mapcreat.h)
-# При ошибке возвращает ноль
-
-    mapGetMtlProjectionDataPro_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlProjectionDataPro', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(mapcreat.LOCALTRANSFORM))
-    def mapGetMtlProjectionDataPro(_hMap: maptype.HMAP, _number: int, _mapregister: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: ctypes.POINTER(ctypes.c_int), _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
-        return mapGetMtlProjectionDataPro_t (_hMap, _number, _mapregister, _datumparam, _ellipsoidparam, _ttype, _tparm)
-
-    mapGetMtlProjectionDataEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlProjectionDataEx', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.MAPREGISTEREX))
-    def mapGetMtlProjectionDataEx(_hMap: maptype.HMAP, _number: int, _mapregister: ctypes.POINTER(mapcreat.MAPREGISTEREX)) -> int:
-        return mapGetMtlProjectionDataEx_t (_hMap, _number, _mapregister)
-
-
-# Запрос - поддерживается ли пересчет к геодезическим
-# координатам из плоских прямоугольных и обратно
-# hMap     - идентификатор открытой основной карты
-# number   - номер файла в цепочке
-# Если нет - возвращает ноль
-
-    mapIsMtlGeoSupported_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapIsMtlGeoSupported', maptype.HMAP, ctypes.c_int)
-    def mapIsMtlGeoSupported(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapIsMtlGeoSupported_t (_hMap, _number)
-
-
-# Запросить параметры эллипсоида матрицы
-# hMap   - идентификатор открытой основной векторной карты
-# number - номер файла матрицы в цепочке
-# ellipsoidparam - адрес структуры, в которой будут размещены
-# параметры эллипсоида
-# Структурa ELLIPSOIDPARAM описанa в mapcreat.h
-# При ошибке возвращает ноль
-
-    mapGetMtlEllipsoidParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlEllipsoidParam', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.ELLIPSOIDPARAM))
-    def mapGetMtlEllipsoidParam(_hMap: maptype.HMAP, _number: int, _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM)) -> int:
-        return mapGetMtlEllipsoidParam_t (_hMap, _number, _ellipsoidparam)
-
-
-# Установить параметры эллипсоида матрицы
-# hMap    - идентификатор открытой основной векторной карты
-# number  - номер файла матрицы в цепочке.
-# ellipsoidparam - адрес структуры, содержащей параметры эллипсоида
-# Структурa ELLIPSOIDPARAM описанa в mapcreat.h
-# При ошибке возвращает ноль
-
-    mapSetMtlEllipsoidParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlEllipsoidParam', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.ELLIPSOIDPARAM))
-    def mapSetMtlEllipsoidParam(_hMap: maptype.HMAP, _number: int, _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM)) -> int:
-        return mapSetMtlEllipsoidParam_t (_hMap, _number, _ellipsoidparam)
-
-
-# Запросить коэффициенты трансформирования геодезических координат матрицы
-# hMap   - идентификатор открытой основной векторной карты
-# number - номер файла матрицы в цепочке
-# datumparam - адрес структуры, в которой будут размещены
-# коэффициенты трансформирования геодезических координат
-# Структурa DATUMPARAM описанa в mapcreat.h
-# При ошибке возвращает ноль
-
-    mapGetMtlDatumParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlDatumParam', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.DATUMPARAM))
-    def mapGetMtlDatumParam(_hMap: maptype.HMAP, _number: int, _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM)) -> int:
-        return mapGetMtlDatumParam_t (_hMap, _number, _datumparam)
-
-
-# Установить коэффициенты трансформирования геодезических координат матрицы
-# hMap    - идентификатор открытой основной векторной карты
-# number  - номер файла матрицы в цепочке.
-# datumparam - адрес структуры, содержащей коэффициенты трансформирования
-# геодезических координат
-# Структурa DATUMPARAM описанa в mapcreat.h
-# При ошибке возвращает ноль
-
-    mapSetMtlDatumParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlDatumParam', maptype.HMAP, ctypes.c_int, ctypes.POINTER(mapcreat.DATUMPARAM))
-    def mapSetMtlDatumParam(_hMap: maptype.HMAP, _number: int, _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM)) -> int:
-        return mapSetMtlDatumParam_t (_hMap, _number, _datumparam)
-
-
-# Установить рамку матрицы по метрике замкнутого объекта
-# Замкнутый объект должен иметь не менее 4-х точек
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# number     - номер файла в цепочке
-# info       - замкнутый объект карты
-# После выполнения функции отображение матрицы ограничится заданной областью
-# При ошибке возвращает ноль
-
-    mapSetMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlBorder', maptype.HMAP, ctypes.c_int, maptype.HOBJ)
-    def mapSetMtlBorder(_hMap: maptype.HMAP, _number: int, _info: maptype.HOBJ) -> int:
-        return mapSetMtlBorder_t (_hMap, _number, _info)
-
-
-# Запросить объект рамки матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlBorder', maptype.HMAP, ctypes.c_int, maptype.HOBJ)
-    def mapGetMtlBorder(_hMap: maptype.HMAP, _number: int, _info: maptype.HOBJ) -> int:
-        return mapGetMtlBorder_t (_hMap, _number, _info)
-
-
-# Удалить рамку матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# После выполнения функции отображение матрицы будет полным
-# При ошибке возвращает ноль
-
-    mapDeleteMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapDeleteMtlBorder', maptype.HMAP, ctypes.c_int)
-    def mapDeleteMtlBorder(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapDeleteMtlBorder_t (_hMap, _number)
-
-
-# Определение существования рамки матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Если рамка матрицы существует возвращает 1, иначе возвращает 0
-
-    mapCheckExistenceMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapCheckExistenceMtlBorder', maptype.HMAP, ctypes.c_int)
-    def mapCheckExistenceMtlBorder(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapCheckExistenceMtlBorder_t (_hMap, _number)
-
-
-# Определение способа отображения матрицы(относительно рамки)
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# Возвращает 1 - при отображении матрицы по рамке
-#            0 - при отображении матрицы без учета рамки
-# При ошибке возвращает -1
-
-    mapCheckShowMtlByBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapCheckShowMtlByBorder', maptype.HMAP, ctypes.c_int)
-    def mapCheckShowMtlByBorder(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapCheckShowMtlByBorder_t (_hMap, _number)
-
-
-# Установка отображения матрицы по рамке
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# value = 1 - отобразить матрицы по рамке
-#       = 0 - отобразить матрицы без учета рамки
-#  При ошибке возвращает ноль
-
-    mapShowMtlByBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapShowMtlByBorder', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapShowMtlByBorder(_hMap: maptype.HMAP, _number: int, _value: int) -> int:
-        return mapShowMtlByBorder_t (_hMap, _number, _value)
-
-
-# Определить координаты и порядковый номер точки рамки, которая
-# входит в прямоугольник Габариты растра(матрицы) и
-# имеет наименьшее удаление от точки pointIn (координаты в метрах)
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# По адресу pointOut записываются координаты найденной точки в метрах
-# При ошибке или отсутствии рамки возвращает ноль
-
-    mapGetImmediatePointOfMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetImmediatePointOfMtlBorder', maptype.HMAP, ctypes.c_int, ctypes.POINTER(maptype.DOUBLEPOINT), ctypes.POINTER(maptype.DOUBLEPOINT))
-    def mapGetImmediatePointOfMtlBorder(_hMap: maptype.HMAP, _number: int, _pointIn: ctypes.POINTER(maptype.DOUBLEPOINT), _pointOut: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
-        return mapGetImmediatePointOfMtlBorder_t (_hMap, _number, _pointIn, _pointOut)
-
-
-# Запросить координаты Юго-Западного угла матрицы в метрах
-# hMap    - идентификатор открытой основной векторной карты
-# number  - номер файла в цепочке
-# По адресу x,y записываются координаты найденной точки в метрах
-# При ошибке возвращает 0
-
-    mapWhereSouthWestMtlPlane_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapWhereSouthWestMtlPlane', maptype.HMAP, ctypes.c_int, ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double))
-    def mapWhereSouthWestMtlPlane(_hMap: maptype.HMAP, _number: int, _x: ctypes.POINTER(ctypes.c_double), _y: ctypes.POINTER(ctypes.c_double)) -> int:
-        return mapWhereSouthWestMtlPlane_t (_hMap, _number, _x, _y)
-
-
-# Запросить фактические габариты отображаемой матрицы в метрах в районе работ
-# При отображение матрицы по рамке возвращаются габариты рамки
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetActualMtlFrame_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetActualMtlFrame', maptype.HMAP, ctypes.POINTER(maptype.DFRAME), ctypes.c_int)
-    def mapGetActualMtlFrame(_hMap: maptype.HMAP, _frame: ctypes.POINTER(maptype.DFRAME), _number: int) -> int:
-        return mapGetActualMtlFrame_t (_hMap, _frame, _number)
-
-
-# Запросить масштаб матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlScale_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlScale', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlScale(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlScale_t (_hMap, _number)
-
-
-# Запросить значения масштаба нижней и верхней границ видимости матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# По адресу bottomScale записывается знаменатель масштаба нижней границы видимости матрицы
-# По адресу topScale записывается знаменатель масштаба верхней границы видимости матрицы
-# При ошибке возвращает ноль
-
-    mapGetMtlRangeScaleVisible_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlRangeScaleVisible', maptype.HMAP, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int))
-    def mapGetMtlRangeScaleVisible(_hMap: maptype.HMAP, _number: int, _bottomScale: ctypes.POINTER(ctypes.c_int), _topScale: ctypes.POINTER(ctypes.c_int)) -> int:
-        return mapGetMtlRangeScaleVisible_t (_hMap, _number, _bottomScale, _topScale)
-
-
-# Установить значения масштаба нижней и верхней границ видимости матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# bottomScale - знаменатель масштаба нижней границы видимости матрицы
-# topScale    - знаменатель масштаба верхней границы видимости матрицы
-# при невыполнении условия bottomScale <= topScale возвращает ноль
-# При ошибке возвращает ноль
-
-    mapSetMtlRangeScaleVisible_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlRangeScaleVisible', maptype.HMAP, ctypes.c_int, ctypes.c_int, ctypes.c_int)
-    def mapSetMtlRangeScaleVisible(_hMap: maptype.HMAP, _number: int, _bottomScale: int, _topScale: int) -> int:
-        return mapSetMtlRangeScaleVisible_t (_hMap, _number, _bottomScale, _topScale)
-
-
-# Запросить активную матрицу
-# (устанавливается приложением по своему усмотрению)
-# hMap - идентификатор открытой карты
-# При ошибке возвращает ноль
-
-    mapGetActiveMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetActiveMtl', maptype.HMAP)
-    def mapGetActiveMtl(_hMap: maptype.HMAP) -> int:
-        return mapGetActiveMtl_t (_hMap)
-
-
-# Установить активную матрицу
-# (устанавливается приложением по своему усмотрению)
-# hMap - идентификатор открытой карты
-# number - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapSetActiveMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetActiveMtl', maptype.HMAP, ctypes.c_int)
-    def mapSetActiveMtl(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapSetActiveMtl_t (_hMap, _number)
-
-
-# Открыта ли матрица с номером "number"
-# Функция возвращает признак открытия указанной матрицы в документе - (1/0).
-# При ошибке возвращает ноль.
-
-    mapIsOpenMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapIsOpenMtl', maptype.HMAP, ctypes.c_int)
-    def mapIsOpenMtl(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapIsOpenMtl_t (_hMap, _number)
-
-
-# Запросить флаг редактируемости матрицы
-# hMap       - идентификатор открытой векторной карты
-# number     - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlEdit_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlEdit', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlEdit(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlEdit_t (_hMap, _number)
-
-
-# Запросить размер файла
-# hMap       - идентификатор открытой векторной карты
-# number     - номер файла в цепочке
-# По адресу fileSize записывается размер файла
-# При ошибке возвращает ноль
-
-    mapGetMtlFileSize_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlFileSize', maptype.HMAP, ctypes.c_int, ctypes.POINTER(ctypes.c_int64))
-    def mapGetMtlFileSize(_hMap: maptype.HMAP, _number: int, _fileSize: ctypes.POINTER(ctypes.c_int64)) -> int:
-        return mapGetMtlFileSize_t (_hMap, _number, _fileSize)
-
-
-# Запросить ширину матрицы (элементы)
-# hMap       - идентификатор открытой векторной карты
-# number     - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlWidthInElement_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlWidthInElement', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlWidthInElement(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlWidthInElement_t (_hMap, _number)
-
-
-# Запросить высоту матрицы (элементы)
-# hMap       - идентификатор открытой векторной карты
-# number     - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlHeightInElement_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlHeightInElement', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlHeightInElement(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlHeightInElement_t (_hMap, _number)
-
-
-# Запросить точность (метр/элем) матрицы
-# hMap       - идентификатор открытой векторной карты
-# number     - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlAccuracy_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetMtlAccuracy', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlAccuracy(_hMap: maptype.HMAP, _number: int) -> float:
-        return mapGetMtlAccuracy_t (_hMap, _number)
-
-
-# Запросить флаг изменения привязки (метры) матрицы             # 28/09/09
-# hMap       - идентификатор открытой векторной карты
-# number     - номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapGetMtlFlagLocationChanged_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlFlagLocationChanged', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlFlagLocationChanged(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlFlagLocationChanged_t (_hMap, _number)
-
-
-# Запросить привязку матрицы  в метрах в районе работ
-# hMap -  идентификатор открытых данных
-# number - номер матрицы в списке открытых матриц
-# location   - координаты юго-западного угла матрицы
-# При ошибке возвращает ноль
-
-    mapGetMtlLocation_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlLocation', maptype.HMAP, ctypes.c_int, ctypes.POINTER(maptype.DOUBLEPOINT))
-    def mapGetMtlLocation(_hMap: maptype.HMAP, _number: int, _location: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
-        return mapGetMtlLocation_t (_hMap, _number, _location)
-
-
-# Установить привязку матрицы  в метрах в районе работ
-# hMap -  идентификатор открытых данных
-# number - номер матрицы в списке открытых матриц
-# location   - координаты юго-западного угла матрицы
-# При ошибке возвращает ноль
-
-    mapSetMtlLocation_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlLocation', maptype.HMAP, ctypes.c_int, ctypes.POINTER(maptype.DOUBLEPOINT))
-    def mapSetMtlLocation(_hMap: maptype.HMAP, _number: int, _location: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
-        return mapSetMtlLocation_t (_hMap, _number, _location)
-
-
-# Запросить - может ли матрица копироваться или экспортироваться
-# hMap -  идентификатор открытых данных
-# number - номер матрицы в списке открытых матриц
-# При ошибке возвращает ноль
-
-    mapGetMtlCopyFlag_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlCopyFlag', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlCopyFlag(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlCopyFlag_t (_hMap, _number)
-
-
-# Запросить - может ли матрица выводиться на печать
-# Для данных, открытых на ГИС Сервере, может устанавливаться
-# запрет вывода изображения на печать
-# hMap -  идентификатор открытых данных
-# number - номер матрицы в списке открытых матриц
-# При ошибке возвращает ноль
-
-    mapGetMtlPrintFlag_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlPrintFlag', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlPrintFlag(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlPrintFlag_t (_hMap, _number)
-
-
-# Запросить единицу измерения значений высот матрицы
-# с номером number в цепочке.
-# hMap -  идентификатор открытых данных
-# number - номер матрицы в списке открытых матриц
-# Возвращаемые значения :
-#   0-метры, 1-дециметры, 2-сантиметры, 3-миллиметры
-# При ошибке возвращает -1
-
-    mapGetMtlMeasure_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlMeasure', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlMeasure(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlMeasure_t (_hMap, _number)
-
-
-# Запросить единицу измерения мощности слоя матрицы
-# с номером number в цепочке.
-# hMap -  идентификатор открытых данных
-# number - номер матрицы в списке открытых матриц
-# Возвращаемые значения :
-#   0-метры, 1-дециметры, 2-сантиметры, 3-миллиметры
-# При ошибке возвращает -1
-
-    mapGetMtlLayerMeasure_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlLayerMeasure', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlLayerMeasure(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlLayerMeasure_t (_hMap, _number)
-
-
-# Запросить/Установить степень видимости матрицы
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# view = 0 - нет видимости
-# view = 1 - полная
-# view = 2 - насыщенная
-# view = 3 - полупрозрачная
-# view = 4 - средняя
-# view = 5 - прозрачная
-
-    mapGetMtlView_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlView', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlView(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlView_t (_hMap, _number)
-
-    mapSetMtlView_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlView', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapSetMtlView(_hMap: maptype.HMAP, _number: int, _view: int) -> int:
-        return mapSetMtlView_t (_hMap, _number, _view)
-
-
-# Запросить/Установить порядок отображения матрицы        # 27/05/09
-# hMap - идентификатор открытой основной карты
-# number - номер матрицы в цепочке
-# order  - порядок отображения (0 - под картой, 1 - над картой)
-# При ошибке возвращает 0
-
-    mapSetMtlViewOrder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlViewOrder', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapSetMtlViewOrder(_hMap: maptype.HMAP, _number: int, _order: int) -> int:
-        return mapSetMtlViewOrder_t (_hMap, _number, _order)
-
-    mapGetMtlViewOrder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlViewOrder', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlViewOrder(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlViewOrder_t (_hMap, _number)
-
-
-# Поменять очередность отображения матриц (mtl) в цепочке
-# oldNumber - номер файла в цепочке
-# newNumber - устанавливаемый номер файла в цепочке
-# При ошибке возвращает ноль
-
-    mapChangeOrderMtlShow_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapChangeOrderMtlShow', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapChangeOrderMtlShow(_hMap: maptype.HMAP, _oldNumber: int, _newNumber: int) -> int:
-        return mapChangeOrderMtlShow_t (_hMap, _oldNumber, _newNumber)
-
-
-# Запросить прозрачность палитры матрицы
-# number - номер файла в цепочке
-# Возвращает степень прозрачности в процентах от 0 до 100
-
-    mapGetMtlTransparent_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapGetMtlTransparent', maptype.HMAP, ctypes.c_int)
-    def mapGetMtlTransparent(_hMap: maptype.HMAP, _number: int) -> int:
-        return mapGetMtlTransparent_t (_hMap, _number)
-
-
-# Установить прозрачность палитры матрицы
-# hMap   - идентификатор открытых данных
-# number - номер файла в цепочке
-# transparent - прозрачность в процентах от 0 до 100
-# При ошибке возвращает ноль
-
-    mapSetMtlTransparent_t = mapsyst.GetProcAddress(acceslib,ctypes.c_int,'mapSetMtlTransparent', maptype.HMAP, ctypes.c_int, ctypes.c_int)
-    def mapSetMtlTransparent(_hMap: maptype.HMAP, _number: int, _transparent: int) -> int:
-        return mapSetMtlTransparent_t (_hMap, _number, _transparent)
-
-
-# Создать объект отображения матрицы слоев в 3D
-# hMap   - идентификатор открытых данных
-# При ошибке возвращает ноль
-
-    mapCreateMtl3D_t = mapsyst.GetProcAddress(acceslib,maptype.HMTL3D,'mapCreateMtl3D', maptype.HMAP)
-    def mapCreateMtl3D(_hmap: maptype.HMAP) -> maptype.HMTL3D:
-        return mapCreateMtl3D_t (_hmap)
-
-
-# Удалить объект отображения матрицы слоев в 3D
-# hmtl3d - идентификатор объекта отображения
-
-    mapDeleteMtl3D_t = mapsyst.GetProcAddress(acceslib,ctypes.c_void_p,'mapDeleteMtl3D', maptype.HMTL3D)
-    def mapDeleteMtl3D(_hmtl3d: maptype.HMTL3D) -> ctypes.c_void_p:
-        return mapDeleteMtl3D_t (_hmtl3d)
-
-
-# Отобразить матрицу слоев в 3D
-# hmtl3d - идентификатор объекта отображения
-# При ошибке возвращает ноль
-
-#   mapPaintMtl3D_t = mapsyst.GetProcAddress(curLib,ctypes.c_int,'mapPaintMtl3D', maptype.HMTL3D, maptype.HDC, ctypes.POINTER(MTL3DVIEWUN))
-#   def mapPaintMtl3D(_hmtl3d: maptype.HMTL3D, _hdc: maptype.HDC, _parm: ctypes.POINTER(MTL3DVIEWUN)) -> int:
-#       return mapPaintMtl3D_t (_hmtl3d, _hdc, _parm)
-
 except Exception as e:
     print(e)
     acceslib = 0
+
+if acceslib == 0:
+    print(gisaccesname)
+else:
+    mapOpenMtlUn_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapOpenMtlUn', maptype.PWCHAR, ctypes.c_long)
+    def mapOpenMtlUn(_mtrname: mapsyst.WTEXT, _mode: int) -> maptype.HMAP:
+        """
+        Открыть матричные данные
+        
+        :param _mtrname: имя открываемого файла
+        
+        :param _mode: режим чтения/записи (``GENERIC_READ``, ``GENERIC_WRITE`` или ``0``) ``GENERIC_READ`` - все данные только на чтение
+        
+        :returns: Возвращает идентификатор открытой матричной карты При ошибке возвращает ноль
+        :rtype: maptype.HMAP
+        """
+        return mapOpenMtlUn_t (_mtrname.buffer(), _mode)
+
+    mapOpenMtlForMapUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapOpenMtlForMapUn', maptype.HMAP, maptype.PWCHAR, ctypes.c_long)
+    def mapOpenMtlForMapUn(_hmap: maptype.HMAP, _mtrname: mapsyst.WTEXT, _mode: int) -> int:
+        """
+        Открыть матричные данные в заданном районе работ, добавить в цепочку матриц
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _mtrname: имя открываемого файла
+        
+        :param _mode: режим чтения/записи (``GENERIC_READ``, ``GENERIC_WRITE`` или ``0``) ``GENERIC_READ`` - все данные только на чтение
+        
+        :returns: Возвращает номер файла в цепочке матриц При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapOpenMtlForMapUn_t (_hmap, _mtrname.buffer(), _mode)
+
+    mapCloseMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_void_p,'mapCloseMtl', maptype.HMAP, ctypes.c_long)
+    def mapCloseMtl(_hmap: maptype.HMAP, _number: int) -> ctypes.c_void_p:
+        """
+        Закрыть матричные данные
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер закрываемой матрицы в цепочке матриц
+        
+        .. note::
+
+           Если number ``= 0``, закрываются все матричные данные
+        """
+        return mapCloseMtl_t (_hmap, _number)
+
+    mapCloseMtlForMap_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCloseMtlForMap', maptype.HMAP, ctypes.c_long)
+    def mapCloseMtlForMap(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Закрыть матричные данные в заданном районе работ
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матричного файла в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        
+        .. note::
+
+           Если number ``= 0``, закрываются все матричные данные
+        """
+        return mapCloseMtlForMap_t (_hmap, _number)
+
+    mapBuildMtlUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapBuildMtlUn', maptype.HMAP, maptype.PWCHAR, maptype.PWCHAR, ctypes.POINTER(BUILDMTL), maptype.HSELECT, maptype.HMESSAGE)
+    def mapBuildMtlUn(_hmap: maptype.HMAP, _mtrname: mapsyst.WTEXT, _ininame: mapsyst.WTEXT, _mtrparm: ctypes.POINTER(BUILDMTL), _hselect: maptype.HSELECT, _handle: maptype.HMESSAGE) -> int:
+        """
+        Построить матрицу на заданный участок района работ
+        
+        :param _hmap: идентификатор исходной карты для построения матрицы
+        
+        :param _mtrname: полное имя файла создаваемой матрицы
+        
+        :param _ininame: полное имя файла легенды создаваемой матрицы
+        
+        :param _mtrparm: параметры создаваемой матрицы, структурa ``BUILDMTL`` описанa в mtlapi.h
+        
+        :param _hselect: идентификатор контекста отбора объектов карты
+        
+        :param _handle: идентификатор окна диалога, которому посылаются сообщения о ходе процесса: ``0x0378`` - сообщение о проценте выполненных работ (в ``WPARAM``) если процесс должен быть принудительно завершен, в ответ должно вернуться значение ``0x0378`` если handle равно нулю - сообщения не посылаются
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapBuildMtlUn_t (_hmap, _mtrname.buffer(), _ininame.buffer(), _mtrparm, _hselect, _handle)
+
+    mapGetMtlDescribeUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlDescribeUn', maptype.HMAP, ctypes.c_long, ctypes.POINTER(MTLDESCRIBEUN))
+    def mapGetMtlDescribeUn(_hmap: maptype.HMAP, _number: int, _describe: ctypes.POINTER(MTLDESCRIBEUN)) -> int:
+        """
+        Запросить описание файла матричных данных
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _describe: адрес структуры, в которой будет размещено описание матрицы Структурa ``MTLDESCRIBEUN`` описанa в mtlapi.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlDescribeUn_t (_hmap, _number, _describe)
+
+    mapGetMtlNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlNameUn', maptype.HMAP, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
+    def mapGetMtlNameUn(_hmap: maptype.HMAP, _number: int, _name: mapsyst.WTEXT, _size: int) -> int:
+        """
+        Запросить имя файла матричных данных
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :param _name: адрес строки для размещения результата
+        
+        :param _size: размер строки
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlNameUn_t (_hmap, _number, _name.buffer(), _size)
+
+    mapGetMtlCount_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlCount', maptype.HMAP)
+    def mapGetMtlCount(_hmap: maptype.HMAP) -> int:
+        """
+        Запросить число открытых файлов матричных данных
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlCount_t (_hmap)
+
+    mapGetMtlNumberByNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlNumberByNameUn', maptype.HMAP, maptype.PWCHAR)
+    def mapGetMtlNumberByNameUn(_hmap: maptype.HMAP, _name: mapsyst.WTEXT) -> int:
+        """
+        Запросить номер матрицы в цепочке по имени файла
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _name: имя файла матрицы В цепочке номера матриц начинаются с ``1``
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlNumberByNameUn_t (_hmap, _name.buffer())
+
+    mapGetMaxLayerCount_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMaxLayerCount', maptype.HMAP)
+    def mapGetMaxLayerCount(_hmap: maptype.HMAP) -> int:
+        """
+        Запросить максимальное количество слоев всех матриц MTL-цепочки
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMaxLayerCount_t (_hmap)
+
+    mapGetLayerCountOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetLayerCountOfMtl', maptype.HMAP, ctypes.c_long)
+    def mapGetLayerCountOfMtl(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить количество слоев матрицы с номером number в цепочке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetLayerCountOfMtl_t (_hmap, _number)
+
+    mapGetMinBotLevelHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetMinBotLevelHeight', maptype.HMAP)
+    def mapGetMinBotLevelHeight(_hmap: maptype.HMAP) -> float:
+        """
+        Запросить минимальную высоту нижнего уровня
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :returns: При ошибке возвращает ERRORHEIGHT
+        :rtype: float
+        """
+        return mapGetMinBotLevelHeight_t (_hmap)
+
+    mapGetMaxSummaryPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetMaxSummaryPower', maptype.HMAP)
+    def mapGetMaxSummaryPower(_hmap: maptype.HMAP) -> float:
+        """
+        Запросить максимальную суммарную мощность слоев
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :returns: При ошибке возвращает ERRORPOWER
+        :rtype: float
+        """
+        return mapGetMaxSummaryPower_t (_hmap)
+
+    mapGetElementHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementHeight', maptype.HMAP, ctypes.c_double, ctypes.c_double)
+    def mapGetElementHeight(_hmap: maptype.HMAP, _x: float, _y: float) -> float:
+        """
+        Запросить значение абсолютной высоты в заданной точке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :returns: Возвращает значение высоты в метрах В случае ошибки при выборе высоты и в случае необеспеченности заданной точки матричными данными возвращает ERRORHEIGHT
+        :rtype: float
+        """
+        return mapGetElementHeight_t (_hmap, _x, _y)
+
+    mapGetElementHeightOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementHeightOfMtl', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double)
+    def mapGetElementHeightOfMtl(_hmap: maptype.HMAP, _number: int, _x: float, _y: float) -> float:
+        """
+        Запросить значение абсолютной высоты в заданной точке из матрицы с номером number в цепочке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :returns: Возвращает значение высоты в метрах В случае ошибки при выборе высоты и в случае необеспеченности заданной точки матричными данными возвращает ERRORHEIGHT
+        :rtype: float
+        """
+        return mapGetElementHeightOfMtl_t (_hmap, _number, _x, _y)
+
+    mapGetElementPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementPower', maptype.HMAP, ctypes.c_double, ctypes.c_double, ctypes.c_long)
+    def mapGetElementPower(_hmap: maptype.HMAP, _x: float, _y: float, _layernumber: int) -> float:
+        """
+        Запросить значение мощности слоя в заданной точке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _layernumber: номер слоя
+        
+        :returns: Возвращает значение мощности слоя в метрах В случае ошибки и в случае необеспеченности заданной точки матричными данными возвращает ERRORPOWER
+        :rtype: float
+        """
+        return mapGetElementPower_t (_hmap, _x, _y, _layernumber)
+
+    mapGetElementPowerOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementPowerOfMtl', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_long)
+    def mapGetElementPowerOfMtl(_hmap: maptype.HMAP, _number: int, _x: float, _y: float, _layernumber: int) -> float:
+        """
+        Запросить значение мощности слоя в заданной точке из матрицы с номером number в цепочке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _layernumber: номер слоя
+        
+        :returns: Возвращает значение мощности слоя в метрах В случае ошибки и в случае необеспеченности заданной точки матричными данными возвращает ERRORPOWER
+        :rtype: float
+        """
+        return mapGetElementPowerOfMtl_t (_hmap, _number, _x, _y, _layernumber)
+
+    mapGetElementPowersTriangleOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetElementPowersTriangleOfMtl', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.POINTER(ctypes.c_double), ctypes.c_long)
+    def mapGetElementPowersTriangleOfMtl(_hmap: maptype.HMAP, _number: int, _x: float, _y: float, _powers: ctypes.POINTER(ctypes.c_double), _count: int) -> int:
+        """
+        Вычислить значения мощностей слоев в заданной точке методом треугольников по матрице с номером number
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _powers: адрес массива для записи вычисленных значений мощностей (в метрах)
+        
+        :param _count: размер массива, должен быть не менее mapGetLayerCountOfMtl()
+        
+        :returns: Возвращает количество заполненных элементов массива powers При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetElementPowersTriangleOfMtl_t (_hmap, _number, _x, _y, _powers, _count)
+
+    mapGetElementPowerTriangleOfMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetElementPowerTriangleOfMtl', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_long)
+    def mapGetElementPowerTriangleOfMtl(_hmap: maptype.HMAP, _number: int, _x: float, _y: float, _layernumber: int) -> float:
+        """
+        Вычислить значение мощности слоя в заданной точке методом треугольников по матрице с номером number
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _layernumber: номер слоя
+        
+        :returns: Возвращает значение мощности слоя в метрах При ошибке возвращает ERRORPOWER
+        :rtype: float
+        """
+        return mapGetElementPowerTriangleOfMtl_t (_hmap, _number, _x, _y, _layernumber)
+
+    mapPutElementHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapPutElementHeight', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double)
+    def mapPutElementHeight(_hmap: maptype.HMAP, _number: int, _x: float, _y: float, _h: float) -> int:
+        """
+        Установить значение абсолютной высоты в элемент матрицы, соответствующий заданной точке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _h: высота, задаётся в метрах в системе координат векторной карты
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: int
+        """
+        return mapPutElementHeight_t (_hmap, _number, _x, _y, _h)
+
+    mapPutElementPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapPutElementPower', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double, ctypes.c_double, ctypes.c_long)
+    def mapPutElementPower(_hmap: maptype.HMAP, _number: int, _x: float, _y: float, _power: float, _layernumber: int) -> int:
+        """
+        Установить значение мощности слоя layernumber в элемент, соответствующий заданной точке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _x: координата X точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _y: координата Y точки, задаётся в метрах в системе координат векторной карты
+        
+        :param _power: мощность, задаётся в метрах в системе координат векторной карты
+        
+        :param _layernumber: номер слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: int
+        """
+        return mapPutElementPower_t (_hmap, _number, _x, _y, _power, _layernumber)
+
+    mapGetMtlNumberInPoint_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlNumberInPoint', maptype.HMAP, ctypes.c_double, ctypes.c_double, ctypes.c_long)
+    def mapGetMtlNumberInPoint(_hmap: maptype.HMAP, _x: float, _y: float, _number: int) -> int:
+        """
+        Запросить номер в цепочке для матрицы, расположенной в заданной точке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: порядковый номер, найденной матрицы в точке (``1`` - первая в данной точке, ``2`` - вторая ...)
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlNumberInPoint_t (_hmap, _x, _y, _number)
+
+    mapGetMtlNumberLastVisible_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlNumberLastVisible', maptype.HMAP)
+    def mapGetMtlNumberLastVisible(_hmap: maptype.HMAP) -> int:
+        """
+        Запросить номер в цепочке последней открытой матрицы с установленным в 1 признаком видимости
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlNumberLastVisible_t (_hmap)
+
+    mapGetMtlBlockSize_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlBlockSize', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlBlockSize(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить размер полного блока матрицы в байтах
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlBlockSize_t (_hmap, _number)
+
+    mapGetMtlBlockSide_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlBlockSide', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlBlockSide(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить вертикальный размер блока матрицы в элементах
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlBlockSide_t (_hmap, _number)
+
+    mapGetMtlBlockAddress_t = mapsyst.GetProcAddress(acceslib,ctypes.POINTER(ctypes.c_char),'mapGetMtlBlockAddress', maptype.HMAP, ctypes.c_long, ctypes.c_long, ctypes.c_long)
+    def mapGetMtlBlockAddress(_hmap: maptype.HMAP, _number: int, _row: int, _column: int) -> ctypes.POINTER(ctypes.c_char):
+        """
+        Запросить адрес блока матрицы по номеру строки и столбца
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке При запросе следующего блока может вернуть прежний адрес Блоки последнего ряда могут иметь усеченный размер
+        
+        :returns: Возвращает адрес считанного блока При ошибке возвращает ноль
+        :rtype: ctypes.POINTER(ctypes.c_char)
+        """
+        return mapGetMtlBlockAddress_t (_hmap, _number, _row, _column)
+
+    mapGetMtlBlockRow_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlBlockRow', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlBlockRow(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить число строк блоков матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlBlockRow_t (_hmap, _number)
+
+    mapGetMtlBlockColumn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlBlockColumn', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlBlockColumn(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить число столбцов блоков матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlBlockColumn_t (_hmap, _number)
+
+    mapGetMtlElementRow_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlElementRow', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlElementRow(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить число строк элементов в матрице
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlElementRow_t (_hmap, _number)
+
+    mapGetMtlElementColumn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlElementColumn', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlElementColumn(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить число столбцов элементов в матрице
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlElementColumn_t (_hmap, _number)
+
+    mapGetHeightArrayFromMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetHeightArrayFromMtl', maptype.HMAP, ctypes.POINTER(ctypes.c_double), ctypes.c_long, ctypes.POINTER(maptype.DOUBLEPOINT), ctypes.POINTER(maptype.DOUBLEPOINT))
+    def mapGetHeightArrayFromMtl(_hmap: maptype.HMAP, _heightarray: ctypes.POINTER(ctypes.c_double), _heightcount: int, _firstpoint: ctypes.POINTER(maptype.DOUBLEPOINT), _secondpoint: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
+        """
+        Запросить массив значений абсолютных высот, соответствующих логическим элементам, лежащим на заданном отрезке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _heightarray: адрес массива высот
+        
+        :param _heightcount: количество высот
+        
+        :param _firstpoint: координаты точки (начало отрезка), задаются в метрах в системе координат векторной карты
+        
+        :param _secondpoint: координаты точки (конец отрезка), задаются в метрах в системе координат векторной карты Размер массива высот, заданного адресом heightarray, должен соответствовать запрашиваемому количеству высот (heightcount), в противном случае возможны ошибки работы с памятью В случае необеспеченности логического элемента матричными данными его значение равно ``ERRORHEIGHT`` (``-111111.0`` м)
+        
+        :returns: В случае ошибки при выборе высот возвращает ноль
+        :rtype: int
+        """
+        return mapGetHeightArrayFromMtl_t (_hmap, _heightarray, _heightcount, _firstpoint, _secondpoint)
+
+    mapGetLayerColor_t = mapsyst.GetProcAddress(acceslib,maptype.COLORREF,'mapGetLayerColor', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapGetLayerColor(_hmap: maptype.HMAP, _number: int, _layernumber: int) -> maptype.COLORREF:
+        """
+        Запросить значение цвета слоя layernumber
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: maptype.COLORREF
+        """
+        return mapGetLayerColor_t (_hmap, _number, _layernumber)
+
+    mapSetLayerColor_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetLayerColor', maptype.HMAP, ctypes.c_long, ctypes.c_long, maptype.COLORREF)
+    def mapSetLayerColor(_hmap: maptype.HMAP, _number: int, _layernumber: int, _layercolor: maptype.COLORREF) -> int:
+        """
+        Установить значение цвета слоя layernumber
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :param _layercolor: цвет слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: int
+        """
+        return mapSetLayerColor_t (_hmap, _number, _layernumber, _layercolor)
+
+    mapGetLayerShortName_t = mapsyst.GetProcAddress(acceslib,ctypes.POINTER(ctypes.c_char),'mapGetLayerShortName', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapGetLayerShortName(_hmap: maptype.HMAP, _number: int, _layernumber: int) -> ctypes.POINTER(ctypes.c_char):
+        """
+        Запросить короткое имя слоя layernumber
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: ctypes.POINTER(ctypes.c_char)
+        """
+        return mapGetLayerShortName_t (_hmap, _number, _layernumber)
+
+    mapSetLayerShortName_t = mapsyst.GetProcAddress(acceslib,ctypes.POINTER(ctypes.c_char),'mapSetLayerShortName', maptype.HMAP, ctypes.c_long, ctypes.c_long, ctypes.c_char_p)
+    def mapSetLayerShortName(_hmap: maptype.HMAP, _number: int, _layernumber: int, _layername: ctypes.c_char_p) -> ctypes.POINTER(ctypes.c_char):
+        """
+        Установить короткое имя слоя layernumber
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :param _layername: короткое имя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: ctypes.POINTER(ctypes.c_char)
+        """
+        return mapSetLayerShortName_t (_hmap, _number, _layernumber, _layername)
+
+    mapGetLayerLongNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.POINTER(maptype.WCHAR),'mapGetLayerLongNameUn', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapGetLayerLongNameUn(_hmap: maptype.HMAP, _number: int, _layernumber: int) -> ctypes.POINTER(maptype.WCHAR):
+        """
+        Запросить имя слоя layernumber
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: ctypes.POINTER(maptype.WCHAR)
+        """
+        return mapGetLayerLongNameUn_t (_hmap, _number, _layernumber)
+
+    mapSetLayerLongNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.POINTER(maptype.WCHAR),'mapSetLayerLongNameUn', maptype.HMAP, ctypes.c_long, ctypes.c_long, maptype.PWCHAR)
+    def mapSetLayerLongNameUn(_hmap: maptype.HMAP, _number: int, _layernumber: int, _layername: mapsyst.WTEXT) -> ctypes.POINTER(maptype.WCHAR):
+        """
+        Установить имя слоя layernumber
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :param _layername: название слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: ctypes.POINTER(maptype.WCHAR)
+        """
+        return mapSetLayerLongNameUn_t (_hmap, _number, _layernumber, _layername.buffer())
+
+    mapGetMaxLayerHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMaxLayerHeight', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapGetMaxLayerHeight(_hmap: maptype.HMAP, _number: int, _layernumber: int) -> int:
+        """
+        Запросить максимальную мощность слоя в метрах
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :returns: В случае ошибки возвращает ноль
+        :rtype: int
+        """
+        return mapGetMaxLayerHeight_t (_hmap, _number, _layernumber)
+
+    mapSetMaxLayerHeight_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMaxLayerHeight', maptype.HMAP, ctypes.c_long, ctypes.c_long, ctypes.c_long)
+    def mapSetMaxLayerHeight(_hmap: maptype.HMAP, _number: int, _layernumber: int, _maxlayerheight: int) -> int:
+        """
+        Установить максимальную мощность слоя в метрах
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _layernumber: номер слоя
+        
+        :returns: В случае ошибки возвращает ноль.
+        :rtype: int
+        """
+        return mapSetMaxLayerHeight_t (_hmap, _number, _layernumber, _maxlayerheight)
+
+    mapGetMtlProjectionData_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlProjectionData', maptype.HMAP, ctypes.c_long, ctypes.POINTER(maptype.MTRPROJECTIONDATA))
+    def mapGetMtlProjectionData(_hmap: maptype.HMAP, _number: int, _projectiondata: ctypes.POINTER(maptype.MTRPROJECTIONDATA)) -> int:
+        """
+        Запросить данные о проекции матричных данных
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _projectiondata: адрес структуры, в которой будут размещены данные о проекции Структурa ``MTRPROJECTIONDATA`` описанa в maptype.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlProjectionData_t (_hmap, _number, _projectiondata)
+
+    mapCreateMtlUn_t = mapsyst.GetProcAddress(acceslib,maptype.HMAP,'mapCreateMtlUn', maptype.PWCHAR, ctypes.POINTER(BUILDMTL))
+    def mapCreateMtlUn(_mtrname: mapsyst.WTEXT, _mtrparm: ctypes.POINTER(BUILDMTL)) -> maptype.HMAP:
+        """
+        Создать матричную карту
+        
+        :param _mtrname: полное имя файла матрицы
+        
+        :param _mtrparm: параметры создаваемой матрицы Структурa ``BUILDMTL`` описанa в mtlapi.h
+        
+        :returns: Возвращает идентификатор открытой матричной карты При ошибке возвращает ноль
+        :rtype: maptype.HMAP
+        """
+        return mapCreateMtlUn_t (_mtrname.buffer(), _mtrparm)
+
+    mapCreateAndAppendMtlUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCreateAndAppendMtlUn', maptype.HMAP, maptype.PWCHAR, ctypes.POINTER(BUILDMTL), ctypes.POINTER(maptype.MTRPROJECTIONDATA))
+    def mapCreateAndAppendMtlUn(_hmap: maptype.HMAP, _mtrname: mapsyst.WTEXT, _mtrparm: ctypes.POINTER(BUILDMTL), _mtrprojectiondata: ctypes.POINTER(maptype.MTRPROJECTIONDATA)) -> int:
+        """
+        Создать файл матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _mtrname: полное имя файла матрицы
+        
+        :param _mtrparm: параметры создаваемой матрицы
+        
+        :param _mtrprojectiondata: параметры проекции создаваемой матрицы Структурa ``BUILDMTL`` описанa в mtlapi.h Структурa ``MTRPROJECTIONDATA`` описанa в maptype.h
+        
+        :returns: Возвращает номер файла в цепочке матриц При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapCreateAndAppendMtlUn_t (_hmap, _mtrname.buffer(), _mtrparm, _mtrprojectiondata)
+
+    mapSaveMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSaveMtl', maptype.HMAP, ctypes.c_long)
+    def mapSaveMtl(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Записать изменения матрицы в файл
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSaveMtl_t (_hmap, _number)
+
+    mapSetMtlShowRange_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlShowRange', maptype.HMAP, ctypes.c_long, ctypes.c_double, ctypes.c_double)
+    def mapSetMtlShowRange(_hmap: maptype.HMAP, _number: int, _minvalue: float, _maxvalue: float) -> int:
+        """
+        Установить диапазон отображаемых элементов матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _minvalue: минимальное значение отображаемого элемента в единицах матрицы
+        
+        :param _maxvalue: максимальное значение отображаемого элемента в единицах матрицы
+        
+        :returns: При ошибке возвращает 0
+        :rtype: int
+        """
+        return mapSetMtlShowRange_t (_hmap, _number, _minvalue, _maxvalue)
+
+    mapSetMtlBotLevel_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlBotLevel', maptype.HMAP, ctypes.c_long, ctypes.c_double)
+    def mapSetMtlBotLevel(_hmap: maptype.HMAP, _number: int, _botlevel: float) -> int:
+        """
+        Установить нижний уровень слоев матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _botlevel: нижний уровень слоев в метрах
+        
+        :returns: При ошибке возвращает 0
+        :rtype: int
+        """
+        return mapSetMtlBotLevel_t (_hmap, _number, _botlevel)
+
+    mapSetMtlMaxSummaryPower_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlMaxSummaryPower', maptype.HMAP, ctypes.c_long, ctypes.c_double)
+    def mapSetMtlMaxSummaryPower(_hmap: maptype.HMAP, _number: int, _maxsummarypower: float) -> int:
+        """
+        Установить максимальную суммарную мощность слоев матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _maxsummarypower: максимальная суммарная мощность в метрах
+        
+        :returns: При ошибке возвращает 0
+        :rtype: int
+        """
+        return mapSetMtlMaxSummaryPower_t (_hmap, _number, _maxsummarypower)
+
+    mapSetMtlProjectionDataPro_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlProjectionDataPro', maptype.HMAP, ctypes.c_long, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.c_long, ctypes.POINTER(mapcreat.LOCALTRANSFORM))
+    def mapSetMtlProjectionDataPro(_hmap: maptype.HMAP, _number: int, _mapregister: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: int, _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
+        """
+        Установить данные о проекции матричных данных
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _mapregister: адрес структуры, содержащей данные о проекции
+        
+        :param _datumparam: адрес структуры, в которой будут размещены коэффициенты трансформирования геодезических координат
+        
+        :param _ellipsoidparam: адрес структуры, в которой будут размещены параметры эллипсоида
+        
+        :param _ttype: тип локального преобразования координат (``TRANSFORMTYPE`` в mapcreat.h) или ``0``
+        
+        :param _tparm: параметры локального преобразования координат Структуры ``MAPREGISTEREX``, ``DATUMPARAM``, ``ELLIPSOIDPARAM``, ``LOCALTRANSFORM`` описаны в mapcreat.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlProjectionDataPro_t (_hmap, _number, _mapregister, _datumparam, _ellipsoidparam, _ttype, _tparm)
+
+    mapGetMtlProjectionDataPro_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlProjectionDataPro', maptype.HMAP, ctypes.c_long, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.POINTER(ctypes.c_long), ctypes.POINTER(mapcreat.LOCALTRANSFORM))
+    def mapGetMtlProjectionDataPro(_hmap: maptype.HMAP, _number: int, _mapregister: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: ctypes.POINTER(ctypes.c_long), _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
+        """
+        Запросить данные о проекции матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :param _mapregister: адрес структуры, в которой будут размещены данные о проекции
+        
+        :param _datumparam: адрес структуры, в которой будут размещены коэффициенты трансформирования геодезических координат
+        
+        :param _ellipsoidparam: адрес структуры, в которой будут размещены параметры эллипсоида
+        
+        :param _ttype: тип локального преобразования координат (``TRANSFORMTYPE`` в mapcreat.h) или ``0``
+        
+        :param _tparm: параметры локального преобразования координат Структуры ``MAPREGISTEREX``, ``DATUMPARAM``, ``ELLIPSOIDPARAM``, ``LOCALTRANSFORM`` описаны в mapcreat.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlProjectionDataPro_t (_hmap, _number, _mapregister, _datumparam, _ellipsoidparam, _ttype, _tparm)
+
+    mapIsMtlGeoSupported_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapIsMtlGeoSupported', maptype.HMAP, ctypes.c_long)
+    def mapIsMtlGeoSupported(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить - поддерживается ли пересчет к геодезическим координатам из плоских прямоугольных и обратно
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: Если нет - возвращает ноль
+        :rtype: int
+        """
+        return mapIsMtlGeoSupported_t (_hmap, _number)
+
+    mapGetMtlEllipsoidParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlEllipsoidParam', maptype.HMAP, ctypes.c_long, ctypes.POINTER(mapcreat.ELLIPSOIDPARAM))
+    def mapGetMtlEllipsoidParam(_hmap: maptype.HMAP, _number: int, _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM)) -> int:
+        """
+        Запросить параметры эллипсоида матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла матрицы в цепочке
+        
+        :param _ellipsoidparam: адрес структуры, в которой будут размещены параметры эллипсоида Структурa ``ELLIPSOIDPARAM`` описанa в mapcreat.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlEllipsoidParam_t (_hmap, _number, _ellipsoidparam)
+
+    mapSetMtlEllipsoidParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlEllipsoidParam', maptype.HMAP, ctypes.c_long, ctypes.POINTER(mapcreat.ELLIPSOIDPARAM))
+    def mapSetMtlEllipsoidParam(_hmap: maptype.HMAP, _number: int, _ellipsoidparam: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM)) -> int:
+        """
+        Установить параметры эллипсоида матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла матрицы в цепочке
+        
+        :param _ellipsoidparam: адрес структуры, содержащей параметры эллипсоида Структурa ``ELLIPSOIDPARAM`` описанa в mapcreat.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlEllipsoidParam_t (_hmap, _number, _ellipsoidparam)
+
+    mapGetMtlDatumParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlDatumParam', maptype.HMAP, ctypes.c_long, ctypes.POINTER(mapcreat.DATUMPARAM))
+    def mapGetMtlDatumParam(_hmap: maptype.HMAP, _number: int, _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM)) -> int:
+        """
+        Запросить коэффициенты трансформирования геодезических координат матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла матрицы в цепочке
+        
+        :param _datumparam: адрес структуры, в которой будут размещены коэффициенты трансформирования геодезических координат Структурa ``DATUMPARAM`` описанa в mapcreat.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlDatumParam_t (_hmap, _number, _datumparam)
+
+    mapSetMtlDatumParam_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlDatumParam', maptype.HMAP, ctypes.c_long, ctypes.POINTER(mapcreat.DATUMPARAM))
+    def mapSetMtlDatumParam(_hmap: maptype.HMAP, _number: int, _datumparam: ctypes.POINTER(mapcreat.DATUMPARAM)) -> int:
+        """
+        Установить коэффициенты трансформирования геодезических координат матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла матрицы в цепочке.
+        
+        :param _datumparam: адрес структуры, содержащей коэффициенты трансформирования геодезических координат Структурa ``DATUMPARAM`` описанa в mapcreat.h
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlDatumParam_t (_hmap, _number, _datumparam)
+
+    mapSetMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlBorder', maptype.HMAP, ctypes.c_long, maptype.HOBJ)
+    def mapSetMtlBorder(_hmap: maptype.HMAP, _number: int, _hobj: maptype.HOBJ) -> int:
+        """
+        Установить рамку матрицы по метрике замкнутого объекта
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _number: номер файла в цепочке
+        
+        :param _hobj: замкнутый объект карты Замкнутый объект должен иметь не менее ``4``-х точек
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        
+        .. note::
+
+           После выполнения функции отображение матрицы ограничится заданной областью
+        """
+        return mapSetMtlBorder_t (_hmap, _number, _hobj)
+
+    mapSetMtlBorderEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlBorderEx', maptype.HMAP, ctypes.c_long, maptype.HOBJ, ctypes.c_long)
+    def mapSetMtlBorderEx(_hmap: maptype.HMAP, _number: int, _hobj: maptype.HOBJ, _flagsubject: int) -> int:
+        """
+        Установить рамку матрицы по метрике замкнутого объекта
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :param _hobj: замкнутый объект карты
+        
+        :param _flagsubject: флаг использования подобъектов объекта при установке рамки растра: ``0`` - в качестве рамки устанавливается контур объекта ``1`` - в качестве рамки устанавливается контур объекта с подобъектами Замкнутый объект должен иметь не менее ``4``-х точек
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        
+        .. note::
+
+           После выполнения функции отображение матрицы ограничится заданной областью
+        """
+        return mapSetMtlBorderEx_t (_hmap, _number, _hobj, _flagsubject)
+
+    mapGetMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlBorder', maptype.HMAP, ctypes.c_long, maptype.HOBJ)
+    def mapGetMtlBorder(_hmap: maptype.HMAP, _number: int, _hobj: maptype.HOBJ) -> int:
+        """
+        Запросить объект рамки матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlBorder_t (_hmap, _number, _hobj)
+
+    mapDeleteMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapDeleteMtlBorder', maptype.HMAP, ctypes.c_long)
+    def mapDeleteMtlBorder(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Удалить рамку матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        
+        .. note::
+
+           После выполнения функции отображение матрицы будет полным
+        """
+        return mapDeleteMtlBorder_t (_hmap, _number)
+
+    mapCheckExistenceMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCheckExistenceMtlBorder', maptype.HMAP, ctypes.c_long)
+    def mapCheckExistenceMtlBorder(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Определить существование рамки матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: Если рамка матрицы существует возвращает 1, иначе возвращает 0
+        :rtype: int
+        """
+        return mapCheckExistenceMtlBorder_t (_hmap, _number)
+
+    mapCheckShowMtlByBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCheckShowMtlByBorder', maptype.HMAP, ctypes.c_long)
+    def mapCheckShowMtlByBorder(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Определить способ отображения матрицы относительно рамки
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: Возвращает: ``1`` - при отображении матрицы по рамке ``0`` - при отображении матрицы без учета рамки При ошибке возвращает -1
+        :rtype: int
+        """
+        return mapCheckShowMtlByBorder_t (_hmap, _number)
+
+    mapShowMtlByBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapShowMtlByBorder', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapShowMtlByBorder(_hmap: maptype.HMAP, _number: int, _value: int) -> int:
+        """
+        Установить отображение матрицы по рамке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _value: ``1`` - отобразить матрицу по рамке ``0`` - отобразить матрицу без учета рамки
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapShowMtlByBorder_t (_hmap, _number, _value)
+
+    mapGetImmediatePointOfMtlBorder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetImmediatePointOfMtlBorder', maptype.HMAP, ctypes.c_long, ctypes.POINTER(maptype.DOUBLEPOINT), ctypes.POINTER(maptype.DOUBLEPOINT))
+    def mapGetImmediatePointOfMtlBorder(_hmap: maptype.HMAP, _number: int, _pointin: ctypes.POINTER(maptype.DOUBLEPOINT), _pointout: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
+        """
+        Определить координаты и порядковый номер точки рамки ближайшей к pointin
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _pointin: координаты точки в метрах
+        
+        :param _pointout: адрес для записи координат найденной точки в метрах Найденная точка входит в прямоугольник габариты матрицы и имеет наименьшее удаление от точки pointin
+        
+        :returns: При ошибке или отсутствии рамки возвращает ноль
+        :rtype: int
+        """
+        return mapGetImmediatePointOfMtlBorder_t (_hmap, _number, _pointin, _pointout)
+
+    mapWhereSouthWestMtlPlane_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapWhereSouthWestMtlPlane', maptype.HMAP, ctypes.c_long, ctypes.POINTER(ctypes.c_double), ctypes.POINTER(ctypes.c_double))
+    def mapWhereSouthWestMtlPlane(_hmap: maptype.HMAP, _number: int, _x: ctypes.POINTER(ctypes.c_double), _y: ctypes.POINTER(ctypes.c_double)) -> int:
+        """
+        Запросить координаты юго-западного угла матрицы в метрах
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :param _x: адрес для записи координаты X найденной точки в метрах
+        
+        :param _y: адрес для записи координаты Y найденной точки в метрах
+        
+        :returns: При ошибке возвращает 0
+        :rtype: int
+        """
+        return mapWhereSouthWestMtlPlane_t (_hmap, _number, _x, _y)
+
+    mapGetActualMtlFrame_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetActualMtlFrame', maptype.HMAP, ctypes.POINTER(maptype.DFRAME), ctypes.c_long)
+    def mapGetActualMtlFrame(_hmap: maptype.HMAP, _frame: ctypes.POINTER(maptype.DFRAME), _number: int) -> int:
+        """
+        Запросить фактические габариты отображаемой матрицы в метрах в районе работ
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _frame: возвращаемые габариты матрицы При отображение матрицы по рамке возвращаются габариты рамки
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetActualMtlFrame_t (_hmap, _frame, _number)
+
+    mapGetMtlScale_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlScale', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlScale(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить масштаб матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlScale_t (_hmap, _number)
+
+    mapGetMtlRangeScaleVisible_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlRangeScaleVisible', maptype.HMAP, ctypes.c_long, ctypes.POINTER(ctypes.c_long), ctypes.POINTER(ctypes.c_long))
+    def mapGetMtlRangeScaleVisible(_hmap: maptype.HMAP, _number: int, _bottomscale: ctypes.POINTER(ctypes.c_long), _topscale: ctypes.POINTER(ctypes.c_long)) -> int:
+        """
+        Запросить значения масштаба нижней и верхней границ видимости матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _bottomscale: адрес для записи знаменателя масштаба нижней границы видимости матрицы
+        
+        :param _topscale: адрес для записи знаменателя масштаба верхней границы видимости матрицы
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlRangeScaleVisible_t (_hmap, _number, _bottomscale, _topscale)
+
+    mapSetMtlRangeScaleVisible_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlRangeScaleVisible', maptype.HMAP, ctypes.c_long, ctypes.c_long, ctypes.c_long)
+    def mapSetMtlRangeScaleVisible(_hmap: maptype.HMAP, _number: int, _bottomscale: int, _topscale: int) -> int:
+        """
+        Установить значения масштаба нижней и верхней границ видимости матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _bottomscale: знаменатель масштаба нижней границы видимости матрицы
+        
+        :param _topscale: знаменатель масштаба верхней границы видимости матрицы
+        
+        :returns: при невыполнении условия bottomscale <= topscale возвращает ноль При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlRangeScaleVisible_t (_hmap, _number, _bottomscale, _topscale)
+
+    mapGetActiveMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetActiveMtl', maptype.HMAP)
+    def mapGetActiveMtl(_hmap: maptype.HMAP) -> int:
+        """
+        Запросить активную матрицу
+        
+        :param _hmap: идентификатор открытых данных Устанавливается приложением по своему усмотрению
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetActiveMtl_t (_hmap)
+
+    mapSetActiveMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetActiveMtl', maptype.HMAP, ctypes.c_long)
+    def mapSetActiveMtl(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Установить активную матрицу
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке Устанавливается приложением по своему усмотрению
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetActiveMtl_t (_hmap, _number)
+
+    mapIsOpenMtl_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapIsOpenMtl', maptype.HMAP, ctypes.c_long)
+    def mapIsOpenMtl(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить открыта ли матрица с номером number
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: Функция возвращает признак открытия указанной матрицы в документе - (1/0) При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapIsOpenMtl_t (_hmap, _number)
+
+    mapGetMtlEdit_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlEdit', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlEdit(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить флаг редактируемости матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlEdit_t (_hmap, _number)
+
+    mapGetMtlFileSize_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlFileSize', maptype.HMAP, ctypes.c_long, ctypes.POINTER(ctypes.c_int64))
+    def mapGetMtlFileSize(_hmap: maptype.HMAP, _number: int, _filesize: ctypes.POINTER(ctypes.c_int64)) -> int:
+        """
+        Запросить размер файла
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :param _filesize: адрес для записи размера файла
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlFileSize_t (_hmap, _number, _filesize)
+
+    mapGetMtlWidthInElement_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlWidthInElement', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlWidthInElement(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить ширину матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: Возвращает ширину матрицы в элементах При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlWidthInElement_t (_hmap, _number)
+
+    mapGetMtlHeightInElement_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlHeightInElement', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlHeightInElement(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить высоту матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: Возвращает высоту матрицы в элементах При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlHeightInElement_t (_hmap, _number)
+
+    mapGetMtlAccuracy_t = mapsyst.GetProcAddress(acceslib,ctypes.c_double,'mapGetMtlAccuracy', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlAccuracy(_hmap: maptype.HMAP, _number: int) -> float:
+        """
+        Запросить точность матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: Возвращает точность матрицы в метрах на элемент При ошибке возвращает ноль
+        :rtype: float
+        """
+        return mapGetMtlAccuracy_t (_hmap, _number)
+
+    mapGetMtlFlagLocationChanged_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlFlagLocationChanged', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlFlagLocationChanged(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить флаг изменения привязки матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlFlagLocationChanged_t (_hmap, _number)
+
+    mapGetMtlLocation_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlLocation', maptype.HMAP, ctypes.c_long, ctypes.POINTER(maptype.DOUBLEPOINT))
+    def mapGetMtlLocation(_hmap: maptype.HMAP, _number: int, _location: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
+        """
+        Запросить привязку матрицы в метрах в районе работ
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в списке открытых матриц
+        
+        :param _location: координаты юго-западного угла матрицы
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlLocation_t (_hmap, _number, _location)
+
+    mapSetMtlLocation_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlLocation', maptype.HMAP, ctypes.c_long, ctypes.POINTER(maptype.DOUBLEPOINT))
+    def mapSetMtlLocation(_hmap: maptype.HMAP, _number: int, _location: ctypes.POINTER(maptype.DOUBLEPOINT)) -> int:
+        """
+        Установить привязку матрицы в метрах в районе работ
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в списке открытых матриц
+        
+        :param _location: координаты юго-западного угла матрицы
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlLocation_t (_hmap, _number, _location)
+
+    mapGetMtlCopyFlag_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlCopyFlag', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlCopyFlag(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить - может ли матрица копироваться или экспортироваться
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в списке открытых матриц
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlCopyFlag_t (_hmap, _number)
+
+    mapGetMtlPrintFlag_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlPrintFlag', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlPrintFlag(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить - может ли матрица выводиться на печать
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в списке открытых матриц Для данных, открытых на ГИС Сервере, может устанавливаться запрет вывода изображения на печать
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlPrintFlag_t (_hmap, _number)
+
+    mapGetMtlMeasure_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlMeasure', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlMeasure(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить единицу измерения значений высот матрицы с номером number в цепочке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в списке открытых матриц Возвращаемые значения: ``0``-метры, ``1``-дециметры, ``2``-сантиметры, ``3``-миллиметры
+        
+        :returns: При ошибке возвращает -1
+        :rtype: int
+        """
+        return mapGetMtlMeasure_t (_hmap, _number)
+
+    mapGetMtlLayerMeasure_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlLayerMeasure', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlLayerMeasure(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить единицу измерения мощности слоя матрицы с номером number в цепочке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в списке открытых матриц Возвращаемые значения: ``0``-метры, ``1``-дециметры, ``2``-сантиметры, ``3``-миллиметры
+        
+        :returns: При ошибке возвращает -1
+        :rtype: int
+        """
+        return mapGetMtlLayerMeasure_t (_hmap, _number)
+
+    mapGetMtlView_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlView', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlView(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить степень видимости матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: Возвращает: ``0`` - нет видимости, ``1`` - полная видимость, ``2`` - насыщенная ``3`` - полупрозрачная, ``4`` - средняя, ``5`` - прозрачная При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetMtlView_t (_hmap, _number)
+
+    mapSetMtlView_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlView', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapSetMtlView(_hmap: maptype.HMAP, _number: int, _view: int) -> int:
+        """
+        Установить степень видимости матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _view: степень видимости матрицы: ``0`` - нет видимости ``1`` - полная видимость ``2`` - насыщенная ``3`` - полупрозрачная ``4`` - средняя ``5`` - прозрачная
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlView_t (_hmap, _number, _view)
+
+    mapSetMtlViewOrder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlViewOrder', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapSetMtlViewOrder(_hmap: maptype.HMAP, _number: int, _order: int) -> int:
+        """
+        Установить порядок отображения матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :param _order: порядок отображения: ``0`` - под картой, ``1`` - над картой
+        
+        :returns: При ошибке возвращает 0
+        :rtype: int
+        """
+        return mapSetMtlViewOrder_t (_hmap, _number, _order)
+
+    mapGetMtlViewOrder_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlViewOrder', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlViewOrder(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить порядок отображения матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер матрицы в цепочке
+        
+        :returns: Возвращает: ``0`` - под картой, ``1`` - над картой При ошибке возвращает 0
+        :rtype: int
+        """
+        return mapGetMtlViewOrder_t (_hmap, _number)
+
+    mapChangeOrderMtlShow_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapChangeOrderMtlShow', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapChangeOrderMtlShow(_hmap: maptype.HMAP, _oldnumber: int, _newnumber: int) -> int:
+        """
+        Поменять очередность отображения матриц слоев в цепочке
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _oldnumber: номер файла в цепочке
+        
+        :param _newnumber: устанавливаемый номер файла в цепочке
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapChangeOrderMtlShow_t (_hmap, _oldnumber, _newnumber)
+
+    mapGetMtlTransparent_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetMtlTransparent', maptype.HMAP, ctypes.c_long)
+    def mapGetMtlTransparent(_hmap: maptype.HMAP, _number: int) -> int:
+        """
+        Запросить прозрачность палитры матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :returns: Возвращает степень прозрачности в процентах от 0 до 100
+        :rtype: int
+        """
+        return mapGetMtlTransparent_t (_hmap, _number)
+
+    mapSetMtlTransparent_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetMtlTransparent', maptype.HMAP, ctypes.c_long, ctypes.c_long)
+    def mapSetMtlTransparent(_hmap: maptype.HMAP, _number: int, _transparent: int) -> int:
+        """
+        Установить прозрачность палитры матрицы
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :param _number: номер файла в цепочке
+        
+        :param _transparent: прозрачность в процентах от ``0`` до ``100``
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSetMtlTransparent_t (_hmap, _number, _transparent)
+
+    mapCreateMtl3D_t = mapsyst.GetProcAddress(acceslib,maptype.HMTL3D,'mapCreateMtl3D', maptype.HMAP)
+    def mapCreateMtl3D(_hmap: maptype.HMAP) -> maptype.HMTL3D:
+        """
+        Создать объект отображения матрицы слоев в 3D
+        
+        :param _hmap: идентификатор открытых данных
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: maptype.HMTL3D
+        """
+        return mapCreateMtl3D_t (_hmap)
+
+    mapDeleteMtl3D_t = mapsyst.GetProcAddress(acceslib,ctypes.c_void_p,'mapDeleteMtl3D', maptype.HMTL3D)
+    def mapDeleteMtl3D(_hmtl3d: maptype.HMTL3D) -> ctypes.c_void_p:
+        """
+        Удалить объект отображения матрицы слоев в 3D
+        
+        :param _hmtl3d: идентификатор объекта отображения
+        """
+        return mapDeleteMtl3D_t (_hmtl3d)
+
+    mapPaintMtl3D_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapPaintMtl3D', maptype.HMTL3D, maptype.HDC, ctypes.POINTER(maptype.MTL3DVIEWUN))
+    def mapPaintMtl3D(_hmtl3d: maptype.HMTL3D, _hdc: maptype.HDC, _parm: ctypes.POINTER(maptype.MTL3DVIEWUN)) -> int:
+        """
+        Отобразить матрицу слоев в 3D
+        
+        :param _hmtl3d: идентификатор объекта отображения
+        
+        :param _hdc: контекст отображения
+        
+        :param _parm: параметры 3D-отображения матриц (описаны в maptype.h)
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapPaintMtl3D_t (_hmtl3d, _hdc, _parm)
+
+
+
+def mtlapi_healthcheck():
+    return 1
