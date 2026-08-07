@@ -302,7 +302,7 @@ class CSVLOADPARAMS(ctypes.Structure):
                 ("EpsgCode",ctypes.c_int),
                 ("NumericSemanticsMode",ctypes.c_int),
                 ("RowNumberToEndReading",ctypes.c_int),
-                ("Zero",ctypes.c_int),
+                ("InvertWKTCoordinates",ctypes.c_int),
                 ("Reserve",ctypes.c_char*(120))]
 #-----------------------------
 

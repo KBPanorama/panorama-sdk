@@ -38,8 +38,8 @@ except Exception as e:
 if acceslib == 0:
     print(gisaccesname)
 else:
-    mapWhatObjectEx_t = mapsyst.GetProcAddress(acceslib,maptype.HOBJ,'mapWhatObjectEx', maptype.HMAP, maptype.HOBJ, ctypes.POINTER(maptype.DFRAME), ctypes.c_long, ctypes.c_long, maptype.HPAINT)
-    def mapWhatObjectEx(_hmap: maptype.HMAP, _hobj: maptype.HOBJ, _frame: ctypes.POINTER(maptype.DFRAME), _flag: int, _place: int, _hpaint: maptype.HPAINT) -> maptype.HOBJ:
+    mapWhatObjectPro_t = mapsyst.GetProcAddress(acceslib,maptype.HOBJ,'mapWhatObjectPro', maptype.HMAP, maptype.HOBJ, ctypes.POINTER(maptype.DFRAME), ctypes.c_long, ctypes.c_long, maptype.HPAINT, ctypes.POINTER(ctypes.c_long))
+    def mapWhatObjectPro(_hmap: maptype.HMAP, _hobj: maptype.HOBJ, _frame: ctypes.POINTER(maptype.DFRAME), _flag: int, _place: int, _hpaint: maptype.HPAINT, _reason: ctypes.POINTER(ctypes.c_long)) -> maptype.HOBJ:
         """
         Найти видимые объекты в окрестности точки, заданной прямоугольной рамкой
         
@@ -53,12 +53,14 @@ else:
         
         :param _place: система координат (``PP_PLANE``, ``PP_GEO``, ...)
         
-        :param _hpaint: идентификатор контекста отображения для многопоточного вызова функции отображения, создается функцией mapCreatePaintControl Применяется для перебора видимых объектов при нажатии левой кнопки мыши на карте Координаты области пересчитываются в пикселы в текущем масштабе отображения В список выбранных могут попасть объекты, которые отображаются в текущем масштабе рядом с областью выбора в пределах нескольких пикселов Площадные объекты выбираются в пределах рамки размером ``512``х``512`` пикселов в текущем масштабе изображения Выбор объекта в ``"точке карты"`` рекомендуется начинать с последнего, который нарисован поверх остальных (это чуть медленнее прямого поиска) При поиске с флажками ``WO_NEXT``, ``WO_BACK`` параметр hobj должен содержать результат предыдущего поиска Поиск выполнется среди тех объектов, которые видны на экране, если не установлен флаг ``WO_VISUALIGNORE``
+        :param _hpaint: идентификатор контекста отображения для многопоточного вызова функции отображения, создается функцией mapCreatePaintControl
         
-        :returns: Если объект найден - возвращает значение hobj, иначе - 0
+        :param _reason: поле для размещения кода причины неудачи при поиске: ``0`` - объект не обнаружен ``1`` - объект обнаружен, но включен режим пропуска объектов оформления (mapGetSkipDesignObjectFlag) Применяется для перебора видимых объектов при нажатии левой кнопки мыши на карте Координаты области пересчитываются в пикселы в текущем масштабе отображения В список выбранных могут попасть объекты, которые отображаются в текущем масштабе рядом с областью выбора в пределах нескольких пикселов Площадные объекты выбираются в пределах рамки размером ``512``х``512`` пикселов в текущем масштабе изображения Выбор объекта в ``"точке карты"`` рекомендуется начинать с последнего, который нарисован поверх остальных (это чуть медленнее прямого поиска) При поиске с флажками ``WO_NEXT``, ``WO_BACK`` параметр hobj должен содержать результат предыдущего поиска Поиск выполнется среди тех объектов, которые видны на экране, если не установлен флаг ``WO_VISUALIGNORE``
+        
+        :returns: Если объект найден - возвращает значение hobj Если объект не найден - возвращает 0, в reason записывается код причины неудачи при поиске
         :rtype: maptype.HOBJ
         """
-        return mapWhatObjectEx_t (_hmap, _hobj, _frame, _flag, _place, _hpaint)
+        return mapWhatObjectPro_t (_hmap, _hobj, _frame, _flag, _place, _hpaint, _reason)
 
     mapWhatObjectBySelectEx_t = mapsyst.GetProcAddress(acceslib,maptype.HOBJ,'mapWhatObjectBySelectEx', maptype.HMAP, maptype.HOBJ, ctypes.POINTER(maptype.DFRAME), maptype.HSELECT, ctypes.c_long, ctypes.c_long, maptype.HPAINT)
     def mapWhatObjectBySelectEx(_hmap: maptype.HMAP, _hobj: maptype.HOBJ, _frame: ctypes.POINTER(maptype.DFRAME), _hselect: maptype.HSELECT, _flag: int, _place: int, _hpaint: maptype.HPAINT) -> maptype.HOBJ:

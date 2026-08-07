@@ -32,6 +32,9 @@
   <item path="editpoints.py" name="Редактирование списка координат в табличном виде" function = "EditPoints" image="editpoints.png" ident="16">
 Редактирование списка координат выбранного объекта в табличном виде.
   </item>
+  <item path="deleteinnerobjects.py" name="Удалить объекты внутри объектов другой карты" function = "DeleteInnerObjects" image="deleteinnerobjects.png" ident="18">
+Скрипт предназначен для автоматического поиска и удаления объектов на одной векторной карте, которые полностью находятся внутри контуров объектов на другой векторной карте. При этом удаляемые объекты не стираются безвозвратно, а переносятся на вновь создаваемую карту-архив, что позволяет при необходимости восстановить их.
+  </item>
  </node>
  <node name="Обработка семантики">
   <item path="altitudemetfeet.py" name="Пересчитать высоту в семантике в футы или метры" function="ConvertSemanticAltitude" image="altitudemetfeet.png" ident="6">
