@@ -8,6 +8,8 @@
  </node>
  <node name="Creating objects">
    <item path="mapgrid.py" name="Building a rectangular grid" image="mapgrid.png" function="BuildGrid" ident="5"/>
+   <item path="deleteinnerobjects.py" name="Delete objects inside objects of another map" function = "DeleteInnerObjects" image="deleteinnerobjects.png" ident="18">
+  </item>
  </node>
  <node name="Processing of semantics">
   <item path="altitudemetfeet.py" name="Recalculate the height in semantics into feet or meters" image="altitudemetfeet.png" function="ConvertSemanticAltitude" ident="6"/>
