@@ -41,6 +41,6 @@ def SaveObjectPoints(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:Ð¡Ð
     initname = str('object_') + str(mapapi.mapObjectKey(hobj)) + str('.txt')
     root = tkinter.Tk()
     root.withdraw() # hide tkinter window
-    filename = filedialog.asksaveasfilename(filetypes=ftypes, title='Select file for points',defaultextension='.txt',initialfile=initname)
+    filename = filedialog.asksaveasfilename(parent=root, filetypes=ftypes, title='Select file for points',defaultextension='.txt',initialfile=initname)
     root.destroy()
     return SaveObjectPointsToFile(hobj, filename)

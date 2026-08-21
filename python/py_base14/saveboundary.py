@@ -96,6 +96,7 @@ def SaveBoundaryList(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:С�
     root = tkinter.Tk()
     root.withdraw () # Погасить дополнительное окно в углу    
     filename = filedialog.asksaveasfilename(
+        parent=root,
         filetypes=(("TXT files", "*.txt"),
                    ("All files", "*.*")),
         title='Сохранить список',

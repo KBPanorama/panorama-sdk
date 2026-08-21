@@ -151,15 +151,15 @@ def MoveObjects(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #caption:Сд�
     dx_label.grid(row=0, column=0, sticky="w")
     dy_label.grid(row=1, column=0, sticky="w")
 
-    dx_value = tkinter.IntVar()
-    dy_value = tkinter.IntVar()
+    dx_value = tkinter.IntVar(master=root)
+    dy_value = tkinter.IntVar(master=root)
 
     dx_entry = tkinter.Entry(root, textvariable=dx_value)
     dy_entry = tkinter.Entry(root, textvariable=dy_value)
     dx_entry.grid(row=0,column=1, padx=5, pady=5)
     dy_entry.grid(row=1,column=1, padx=5, pady=5)
 
-    ret_value = tkinter.IntVar()
+    ret_value = tkinter.IntVar(master=root)
     ret_value.set(0)
 
     def Close():

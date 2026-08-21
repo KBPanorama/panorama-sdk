@@ -278,7 +278,7 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
                 return
 
         files = [('CSV', '*.csv')]
-        outputFileName = asksaveasfilename(filetypes = files, defaultextension = files)
+        outputFileName = asksaveasfilename(parent = mainWindow, filetypes = files, defaultextension = files)
 
         if len(outputFileName) == 0:
             mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбран файл для сохранения данных'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
@@ -320,8 +320,8 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
         grA_label.grid  (row=0, column=0, sticky="w",padx=5)
         grB_label.grid  (row=1, column=0, sticky="w",padx=5)
 
-        grA_name  = tkinter.StringVar()
-        grB_name  = tkinter.StringVar()
+        grA_name  = tkinter.StringVar(master=mainWindow)
+        grB_name  = tkinter.StringVar(master=mainWindow)
         grA_name.trace('w',GroupAChange)
         grB_name.trace('w',GroupBChange)
         grA_combo = tkinter.ttk.Combobox(mainWindow, textvariable=grA_name, values=mapNames,width=40,height = 100)
@@ -333,8 +333,8 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
         semB_label   = tkinter.Label(mainWindow,text="Семантика B (ID): ")
         semA_label.grid  (row=2, column=0, sticky="w",padx=5)
         semB_label.grid  (row=3, column=0, sticky="w",padx=5)
-        semNameA = tkinter.StringVar()
-        semNameB   = tkinter.StringVar()
+        semNameA = tkinter.StringVar(master=mainWindow)
+        semNameB   = tkinter.StringVar(master=mainWindow)
         semA_combo = tkinter.ttk.Combobox(mainWindow, textvariable=semNameA, values=[],width=40,height = 100)
         semB_combo = tkinter.ttk.Combobox(mainWindow, textvariable=semNameB, values=[],width=40,height = 100)
         semA_combo.grid(column=1, row=2,padx=5)

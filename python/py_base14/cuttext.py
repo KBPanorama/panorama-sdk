@@ -86,31 +86,31 @@ def CutText(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #caption:Выре�
     root = tkinter.Tk()
     root.title(title)
     
-    src_label = tkinter.Label(text="Код семантики: ")
-    start_label = tkinter.Label(text="Удалить с позиции: ")
-    stop_label = tkinter.Label(text="До позиции: ")
-    count_label = tkinter.Label(text="Выделено: " + str(seekcount))
+    src_label = tkinter.Label(root, text="Код семантики: ")
+    start_label = tkinter.Label(root, text="Удалить с позиции: ")
+    stop_label = tkinter.Label(root, text="До позиции: ")
+    count_label = tkinter.Label(root, text="Выделено: " + str(seekcount))
 
     src_label.grid(row=0, column=0, sticky="w")
     start_label.grid(row=1, column=0, sticky="w")
     stop_label.grid(row=2, column=0, sticky="w")
     count_label.grid(row=2, column=2, sticky="w")
 
-    src_value = tkinter.IntVar()
-    start_value = tkinter.IntVar()
-    stop_value = tkinter.IntVar()
+    src_value = tkinter.IntVar(master=root)
+    start_value = tkinter.IntVar(master=root)
+    stop_value = tkinter.IntVar(master=root)
 
-    src_entry = tkinter.Entry(width=10, textvariable=src_value)
-    start_entry = tkinter.Entry(width=10, textvariable=start_value)
-    stop_entry = tkinter.Entry(width=10, textvariable=stop_value)
+    src_entry = tkinter.Entry(root, width=10, textvariable=src_value)
+    start_entry = tkinter.Entry(root, width=10, textvariable=start_value)
+    stop_entry = tkinter.Entry(root, width=10, textvariable=stop_value)
 
     src_entry.grid(row=0,column=1, padx=5, pady=5)
     start_entry.grid(row=1,column=1, padx=5, pady=5)
-    stop_entry.grid(row=2,column=1, padx=5, pady=5)
+    stop_entry.grid(row=2,column=1, padx=5, pady=5)    
     semname = mapsyst.WTEXT(64)
     hrsc = rscapi.mapGetRscIdent(_hmap, _hmap)
-    rscapi.mapGetRscSemanticNameUn(hrsc, 9, semname, semname.size())
-    select_src = tkinter.Button(text=semname.string())
+    rscapi.mapGetRscSemanticNameUn(hrsc, 9, semname, semname.size())    
+    select_src = tkinter.Button(root, text=semname.string())
     src_value.set(9)
     start_value.set(1)
     stop_value.set(3)
@@ -125,7 +125,7 @@ def CutText(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #caption:Выре�
             select_src.configure(text=semname.string())
     select_src.configure(command=SelectSemanticSrc)
     select_src.grid(row=0, column=2, padx=10, sticky="w")
-    ret_value = tkinter.IntVar()
+    ret_value = tkinter.IntVar(master=root)
     ret_value.set(0)
     def Run():
         nonlocal retvalue
@@ -135,7 +135,7 @@ def CutText(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #caption:Выре�
 
     def Close():
         root.destroy()
-    message_button = tkinter.Button(text="Выполнить", command=Run)
+    message_button = tkinter.Button(root, text="Выполнить", command=Run)
     message_button.grid(row=3,column=1, padx=5, pady=5, sticky="e")
     root.eval('tk::PlaceWindow . center')
     root.mainloop()

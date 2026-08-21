@@ -72,24 +72,24 @@ def ConvertSemanticAltitude(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #c
     root = tkinter.Tk()
     root.title("Пересчитать высоту в семантике")
  
-    src_label = tkinter.Label(text="Входная семантика: ")
-    out_label = tkinter.Label(text="Выходная семантика: ")
+    src_label = tkinter.Label(root, text="Входная семантика: ")
+    out_label = tkinter.Label(root, text="Выходная семантика: ")
     src_label.grid(row=0, column=0, sticky="w")
     out_label.grid(row=1, column=0, sticky="w")
 
-    src_value = tkinter.IntVar()
-    out_value = tkinter.IntVar()
+    src_value = tkinter.IntVar(master=root)
+    out_value = tkinter.IntVar(master=root)
 
-    src_entry = tkinter.Entry(width=10, textvariable=src_value)
-    out_entry = tkinter.Entry(width=10, textvariable=out_value)
+    src_entry = tkinter.Entry(root, width=10, textvariable=src_value)
+    out_entry = tkinter.Entry(root, width=10, textvariable=out_value)
     src_entry.grid(row=0,column=1, padx=5, pady=5)
     out_entry.grid(row=1,column=1, padx=5, pady=5)
 
     semname = mapsyst.WTEXT(64)
     hrsc = rscapi.mapGetRscIdent(_hmap, _hmap)
     rscapi.mapGetRscSemanticNameUn(hrsc, 4, semname, semname.size())
-    select_src = tkinter.Button(text=semname.string())
-    select_out = tkinter.Button(text=semname.string())
+    select_src = tkinter.Button(root, text=semname.string())
+    select_out = tkinter.Button(root, text=semname.string())
     src_value.set(4)
     out_value.set(4)
 
@@ -116,12 +116,12 @@ def ConvertSemanticAltitude(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #c
     select_out.configure(command=SelectSemanticOut)
     select_out.grid(row=1, column=2, padx=10, pady=2, sticky="w")
 
-    type_value = tkinter.IntVar()
+    type_value = tkinter.IntVar(master=root)
     type_value.set(1)
     met2feet = tkinter.Radiobutton(root, text="в футы", variable=type_value, value=1).grid(row=2, column=1, sticky="w")
     feet2met = tkinter.Radiobutton(root, text="в метры", variable=type_value, value=2).grid(row=2, column=2, sticky="w")
 
-    ret_value = tkinter.IntVar()
+    ret_value = tkinter.IntVar(master=root)
     ret_value.set(0)
     multi_f = 1. / 0.3048
     multi_m = 0.3048
@@ -140,9 +140,9 @@ def ConvertSemanticAltitude(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #c
     def Close():
         root.destroy()
 
-    message_button = tkinter.Button(text="Выполнить", command=Run)
+    message_button = tkinter.Button(root, text="Выполнить", command=Run)
     message_button.grid(row=3,column=1, padx=5, pady=5, sticky="e")
-    message_button = tkinter.Button(text="Отменить", command=Close)
+    message_button = tkinter.Button(root, text="Отменить", command=Close)
     message_button.grid(row=3,column=2, padx=5, pady=5, sticky="w")
 
     root.eval('tk::PlaceWindow . center')

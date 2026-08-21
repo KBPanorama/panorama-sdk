@@ -3142,23 +3142,23 @@ class RosstatDialog:
         self.root.bind('<Configure>', self._on_root_configure, add='+')
         ensure_dirs()
         self.document_hmap = document_hmap
-        self.selected_material = tk.StringVar(value=MATERIAL_TYPES[0].name)
-        self.preview_title_text = tk.StringVar(value=tr('preview_title', name=_preview_headline_name(MATERIAL_TYPES[0].name, table_path_for_material(MATERIAL_TYPES[0].name))))
-        self.table_period_var = tk.StringVar(value='')
+        self.selected_material = tk.StringVar(master=root, value=MATERIAL_TYPES[0].name)
+        self.preview_title_text = tk.StringVar(master=root, value=tr('preview_title', name=_preview_headline_name(MATERIAL_TYPES[0].name, table_path_for_material(MATERIAL_TYPES[0].name))))
+        self.table_period_var = tk.StringVar(master=root, value='')
         self._last_thematic_mpt: Optional[Path] = None
         self.material_enabled = False
         self.material_dropdown_expanded = False
         self.selector_labels = build_selector_labels()
         self.material_visible_count = 7
         self.material_offset = 0
-        self.material_row_var = tk.IntVar(value=0)
+        self.material_row_var = tk.IntVar(master=root, value=0)
         self.material_row_to_index: Dict[int, int] = {}
         self.preview_rows = 10
-        self.preview_mode_var = tk.StringVar(value='full')
-        self.value_column_var = tk.StringVar(value=str(_value_column_min_1based()))
+        self.preview_mode_var = tk.StringVar(master=root, value='full')
+        self.value_column_var = tk.StringVar(master=root, value=str(_value_column_min_1based()))
         self._value_col_spin_bounds: Optional[Tuple[int, int]] = None
-        self.min_value_var = tk.StringVar(value='')
-        self.max_value_var = tk.StringVar(value='')
+        self.min_value_var = tk.StringVar(master=root, value='')
+        self.max_value_var = tk.StringVar(master=root, value='')        
         self.min_color_int = 9498256
         self.max_color_int = 16711680
         self.dependencies_ready = False
@@ -3496,7 +3496,7 @@ class RosstatDialog:
 
     def _pick_min_color(self) -> None:
         """Выбор цвета для минимального значения"""
-        rgb, _hex = colorchooser.askcolor(color=f'#{self.min_color_int & 16777215:06x}', title=tr('color_min_title'))
+        rgb, _hex = colorchooser.askcolor(color=f'#{self.min_color_int & 16777215:06x}', title=tr('color_min_title'), parent=self.root)
         if rgb:
             r, g, b = [int(v) for v in rgb]
             self.min_color_int = r << 16 | g << 8 | b
@@ -3504,7 +3504,7 @@ class RosstatDialog:
 
     def _pick_max_color(self) -> None:
         """Выбор цвета для максимального значения"""
-        rgb, _hex = colorchooser.askcolor(color=f'#{self.max_color_int & 16777215:06x}', title=tr('color_max_title'))
+        rgb, _hex = colorchooser.askcolor(color=f'#{self.max_color_int & 16777215:06x}', title=tr('color_max_title'), parent=self.root)
         if rgb:
             r, g, b = [int(v) for v in rgb]
             self.max_color_int = r << 16 | g << 8 | b
@@ -3698,7 +3698,7 @@ class RosstatDialog:
                     self.dependencies_missing = missing
                     self.dependencies_ready = False
                     self.root.update_idletasks()
-                    messagebox.showwarning(tr('dlg_deps_title'), dep_notice)
+                    messagebox.showwarning(tr('dlg_deps_title'), dep_notice, parent=self.root)
                 else:
                     self.dependencies_missing = []
                     self.dependencies_ready = True
@@ -3725,9 +3725,9 @@ class RosstatDialog:
             self._refresh_stats_headline()
         except HTTPError as exc:
             detail = str(exc.reason).strip() if getattr(exc, 'reason', None) else str(exc)
-            messagebox.showerror(tr('dlg_error'), tr('http_portal_transient', code=int(exc.code), detail=detail))
+            messagebox.showerror(tr('dlg_error'), tr('http_portal_transient', code=int(exc.code), detail=detail), parent=self.root)
         except Exception as exc:
-            messagebox.showerror(tr('dlg_error'), str(exc))
+            messagebox.showerror(tr('dlg_error'), str(exc), parent=self.root)
         finally:
             self.is_refreshing_data = False
             self._update_execute_button_state()
@@ -3766,7 +3766,7 @@ class RosstatDialog:
             except Exception:
                 pass
         except Exception as exc:
-            messagebox.showerror(tr('dlg_execute_error'), str(exc))
+            messagebox.showerror(tr('dlg_execute_error'), str(exc), parent=self.root)
 
     def on_help(self) -> None:
         """Открытие справки"""
@@ -3862,7 +3862,7 @@ class RosstatDialog:
 
     def _tk_callback_exception(self, exc, val, tb) -> None:
         """Обработка исключений в диалоге"""
-        messagebox.showerror(tr('dlg_tk_error'), f'{exc.__name__}: {val}')
+        messagebox.showerror(tr('dlg_tk_error'), f'{exc.__name__}: {val}', parent=self.root)
 
     def on_close(self) -> None:
         self.root.destroy()

@@ -77,24 +77,24 @@ def DistanceToSemantic(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #captio
     root = tkinter.Tk()
     root.title("Расстояние до объекта записать в семантику")
 
-    src_label0 = tkinter.Label(text="Выделено объектов: ")
+    src_label0 = tkinter.Label(root, text="Выделено объектов: ")
     src_label0.grid(row=0, column=0, sticky="w")
-    src_value0 = tkinter.IntVar()
+    src_value0 = tkinter.IntVar(master=root)
     src_value0.set(seekcount)
-    src_entry0 = tkinter.Entry(width=10, textvariable=src_value0)
+    src_entry0 = tkinter.Entry(root, width=10, textvariable=src_value0)
     src_entry0.grid(row=0,column=1, padx=5, pady=5)
     src_entry0['state'] = 'readonly'
 
-    src_label = tkinter.Label(text="Семантика для расстояния: ")
+    src_label = tkinter.Label(root, text="Семантика для расстояния: ")
     src_label.grid(row=1, column=0, sticky="w")
-    src_value = tkinter.IntVar()
-    src_entry = tkinter.Entry(width=10, textvariable=src_value)
+    src_value = tkinter.IntVar(master=root)
+    src_entry = tkinter.Entry(root, width=10, textvariable=src_value)
     src_entry.grid(row=1,column=1, padx=5, pady=5)
 
     semname = mapsyst.WTEXT(128)
     hrsc = rscapi.mapGetRscIdent(_hmap, _hmap)
     rscapi.mapGetRscSemanticNameUn(hrsc, 2, semname, semname.size())
-    src_select = tkinter.Button(text=semname.string())
+    src_select = tkinter.Button(root, text=semname.string())
     src_value.set(2)
 
     def SelectSemanticSrc():
@@ -109,7 +109,7 @@ def DistanceToSemantic(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #captio
     src_select.configure(command=SelectSemanticSrc, width=30)
     src_select.grid(row=1, column=2, padx=10, sticky="w")
 
-    ret_value = tkinter.IntVar()
+    ret_value = tkinter.IntVar(master=root)
     ret_value.set(0)
 
     def Run():
@@ -120,9 +120,9 @@ def DistanceToSemantic(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #captio
     def Close():
         root.destroy()
 
-    message_button = tkinter.Button(text="Выполнить", command=Run)
+    message_button = tkinter.Button(root, text="Выполнить", command=Run)
     message_button.grid(row=3,column=1, padx=5, pady=5, sticky="e")
-    message_button = tkinter.Button(text="Отменить", command=Close)
+    message_button = tkinter.Button(root, text="Отменить", command=Close)
     message_button.grid(row=3,column=2, padx=5, pady=5, sticky="w")
 
     root.eval('tk::PlaceWindow . center')

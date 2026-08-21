@@ -688,13 +688,14 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 			out_full_path = {"value": ""}
 
 			tkinter.Label(root, text=tr("label_classifier")).grid(row=0, column=0, sticky="w", padx=8, pady=(10, 4))
-			rsc_display_var = tkinter.StringVar()
+			rsc_display_var = tkinter.StringVar(master=root)
 			rsc_entry = ttk.Entry(root, textvariable=rsc_display_var, state="readonly")
 			rsc_entry.grid(row=0, column=1, sticky="we", padx=4, pady=(10, 4))
 			def browse_rsc():
 				_prev = rsc_full_path["value"]
 				init_dir = _os.path.dirname(_prev) if _prev else ""
 				path = filedialog.askopenfilename(
+					parent=root,
 					title=tr("browse_classifier_title"),
 					filetypes=[(tr("classifier_ft_desc"), "*.rsc *.rscz"), ("All files" if _LANG=="en" else "Все файлы", "*.*")],
 					initialdir=init_dir or None
@@ -708,7 +709,7 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 			tkinter.Button(root, text="...", width=5, command=browse_rsc).grid(row=0, column=2, padx=(8, 8), pady=(10, 4))
 
 			tkinter.Label(root, text=tr("label_sql")).grid(row=1, column=0, sticky="w", padx=8, pady=4)
-			out_display_var = tkinter.StringVar()
+			out_display_var = tkinter.StringVar(master=root)
 			out_entry = ttk.Entry(root, textvariable=out_display_var, state="readonly")
 			out_entry.grid(row=1, column=1, sticky="we", padx=4, pady=4)
 			def browse_out():
@@ -718,6 +719,7 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 				base = _os.path.splitext(_os.path.basename(_rsc))[0] if _rsc else "classifier_semantics"
 				init_file = base + ".sql"
 				path = filedialog.asksaveasfilename(
+					parent=root,
 					title=tr("browse_sql_title"),
 					defaultextension=".sql",
 					filetypes=[(tr("sql_ft_desc"), "*.sql"), ("All files" if _LANG=="en" else "Все файлы", "*.*")],
@@ -738,8 +740,8 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 					out_display_var.set(ellipsize_path(path, out_entry))
 			tkinter.Button(root, text="...", width=5, command=browse_out).grid(row=1, column=2, padx=(8, 8), pady=4)
 
-			log_var = tkinter.BooleanVar(value=False)
-			single_table_var = tkinter.BooleanVar(value=False)
+			log_var = tkinter.BooleanVar(master=root, value=False)
+			single_table_var = tkinter.BooleanVar(master=root, value=False)
 			tkinter.Checkbutton(root, text=tr("checkbox_log"), variable=log_var).grid(row=2, column=1, sticky="w", padx=4, pady=(0, 2))
 			tkinter.Checkbutton(root, text=tr("checkbox_single_table"), variable=single_table_var).grid(row=3, column=1, sticky="w", padx=4, pady=(0, 2))
 
@@ -752,7 +754,7 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 					webbrowser.open(tr("help_url"))
 				except Exception:
 					try:
-						mb.showinfo(tr("btn_help"))
+						mb.showinfo(tr("btn_help"), parent=root)
 					except Exception:
 						pass
 			def on_cancel():
@@ -765,20 +767,20 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 			def on_execute():
 				if not rsc_full_path["value"]:
 					try:
-						mb.showwarning(tr("warn"), tr("no_classifier"))
+						mb.showwarning(tr("warn"), tr("no_classifier"), parent=root)
 					except Exception:
 						pass
 					return
 				if not out_full_path["value"]:
 					try:
-						mb.showwarning(tr("warn"), tr("no_sql"))
+						mb.showwarning(tr("warn"), tr("no_sql"), parent=root)
 					except Exception:
 						pass
 					return
 				_candidate = rsc_full_path["value"]
 				if not _candidate.lower().endswith((".rsc", ".rscz")):
 					write_diag_pair("input parameters error - ", _candidate, getattr(maptype, "MT_ERROR", 1))
-					try: mb.showwarning(tr("warn"), tr("bad_classifier"))
+					try: mb.showwarning(tr("warn"), tr("bad_classifier"), parent=root)
 					except Exception: pass
 					return
 				prev_msg = 0
@@ -797,7 +799,7 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 					msg = f"{tr('err_classif_struct')} - {_candidate}"
 					mapapi.mapShowMessage(mapsyst.WTEXT(msg), mapsyst.WTEXT("rsc2sql"))
 					write_diag_pair("invalid classifier format, file - ", _candidate, getattr(maptype, "MT_ERROR", 1))
-					try: mb.showwarning(tr("warn"), msg)
+					try: mb.showwarning(tr("warn"), msg, parent=root)
 					except Exception: pass
 					return
 				is_ok = True
@@ -810,7 +812,7 @@ def GenerateSemanticsTable(hmap, hobj) -> float: #caption:Сформироват
 					msg = f"{tr('err_classif_struct')} - {_candidate}"
 					mapapi.mapShowMessage(mapsyst.WTEXT(msg), mapsyst.WTEXT("rsc2sql"))
 					write_diag_pair("invalid classifier format, file - ", _candidate, getattr(maptype, "MT_ERROR", 1))
-					try: mb.showwarning(tr("warn"), msg)
+					try: mb.showwarning(tr("warn"), msg, parent=root)
 					except Exception: pass
 					return
 				selected_rsc_path["value"] = _candidate

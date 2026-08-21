@@ -20,11 +20,12 @@ def LoadMif(hmap:maptype.HMAP, folder, filename, rscname) -> int:
 def MifFolderToMap(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:Импорт MIF/MID
     root = tkinter.Tk()
     root.withdraw() 
-    folder = filedialog.askdirectory()
+    folder = filedialog.askdirectory(parent=root)
     if len(folder) == 0:
         root.destroy()
         return 0
     filename = filedialog.asksaveasfilename(
+        parent=root,
         filetypes=(("SITX files", "*.sitx"),
                    ("All files", "*.*")),
         title='Сохранить',
@@ -34,6 +35,7 @@ def MifFolderToMap(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:Им�
         root.destroy()
         return 0
     rscname = filedialog.askopenfilename(
+        parent=root,
         filetypes=(("RSC files", "*.rsc"),
                    ("All files", "*.*")),
         defaultextension='.rsc',

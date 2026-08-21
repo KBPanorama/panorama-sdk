@@ -873,14 +873,14 @@ def GetDialogSettings(hmap):
     root.title(tr('title'))
     root.wm_attributes('-topmost', 1)
 
-    containerMapName = tkinter.StringVar()
-    objectMapName = tkinter.StringVar()
-    modelFileName = tkinter.StringVar()
-    modelFileText = tkinter.StringVar()
-    archiveFileName = tkinter.StringVar()
-    archiveFileText = tkinter.StringVar()
-    modelName = tkinter.StringVar()
-    saveToArchive = tkinter.IntVar()
+    containerMapName = tkinter.StringVar(master=root)
+    objectMapName = tkinter.StringVar(master=root)
+    modelFileName = tkinter.StringVar(master=root)
+    modelFileText = tkinter.StringVar(master=root)
+    archiveFileName = tkinter.StringVar(master=root)
+    archiveFileText = tkinter.StringVar(master=root)
+    modelName = tkinter.StringVar(master=root)
+    saveToArchive = tkinter.IntVar(master=root)
     result = {'value': None}
     dialogClosed = {'value': False}
     isRestoring = {'value': True}
@@ -944,6 +944,7 @@ def GetDialogSettings(hmap):
 
     def BrowseModelFile():
         fileName = askopenfilename(
+            parent=root,
             title=tr('dlg_select_models'),
             filetypes=[
                 (tr('filetype_models'), u'*.vclx'),
@@ -956,6 +957,7 @@ def GetDialogSettings(hmap):
         if not saveToArchive.get():
             return
         fileName = asksaveasfilename(
+            parent=root,
             title=tr('dlg_select_archive'),
             defaultextension=u'.sitx',
             filetypes=[

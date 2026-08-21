@@ -33,7 +33,7 @@ def SaveSitxtoTif(filename, element) -> int:
 def SitxToTif(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:Карты из папки в TIF
     root = tkinter.Tk()
     root.withdraw() 
-    folder = filedialog.askdirectory()
+    folder = filedialog.askdirectory(parent=root)
     if len(folder) == 0:
         root.destroy()
         return 0

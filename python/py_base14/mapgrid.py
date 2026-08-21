@@ -98,12 +98,12 @@ def BuildGrid(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:Постр
     root = tkinter.Tk()
     root.title("Построение сетки")
     retcode = 0
-    src_label = tkinter.Label(text="Шаг сетки, мм.: ")
+    src_label = tkinter.Label(root, text="Шаг сетки, мм.: ")
     src_label.grid(row=0, column=0, sticky="w")
-    ret_value = tkinter.IntVar()
-    src_value = tkinter.IntVar()
+    ret_value = tkinter.IntVar(master=root)
+    src_value = tkinter.IntVar(master=root)
     src_value.set(20)    
-    src_entry = tkinter.Entry(width=10, textvariable=src_value)
+    src_entry = tkinter.Entry(root, width=10, textvariable=src_value)
     src_entry.grid(row=0,column=1, padx=5, pady=5)
     
     def Run():
@@ -115,11 +115,9 @@ def BuildGrid(hmap:maptype.HMAP,hobj:maptype.HOBJ) -> float: #caption:Постр
     def Close():
         root.destroy()
 
-    message_button = tkinter.Button(text="Выполнить", command=Run)
+    message_button = tkinter.Button(root, text="Выполнить", command=Run)
     message_button.grid(row=0,column=3, padx=5, pady=5, sticky="e")
     root.eval('tk::PlaceWindow . center')
     root.mainloop()
     mapapi.mapInvalidate();
-    return retcode 
-
-
+    return retcode

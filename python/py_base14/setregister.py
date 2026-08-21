@@ -93,7 +93,7 @@ def SetLabelsRegister(_hmap:maptype.HMAP, _hobj:maptype.HOBJ) -> float: #caption
     combo.current(1)  
     combo['state'] = 'readonly'
     combo.grid(column=0, row=0, padx=5, pady=5)
-    button = tkinter.Button(text="Выполнить", command=CallProcess)
+    button = tkinter.Button(root, text="Выполнить", command=CallProcess)
     button.grid(row=0,column=1, padx=5, pady=5, sticky="e")
     root.eval('tk::PlaceWindow . center')
     root.resizable(False, False)
