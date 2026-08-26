@@ -506,7 +506,7 @@ else:
         
         :param _objectnumber: порядковый номер объекта в листе, от ``1`` до mapGetSiteObjectCount(...)
         
-        :returns: Если объект имеет признак ``"удален"``, то функция возвращает 1 При успешном выполнении возвращает значение 2 При ошибке возвращает ноль
+        :returns: Если объект имеет признак ``"удален"``, то функция возвращает 1 (READOBJECT_DELETED) При успешном выполнении возвращает значение 2 (READOBJECT_OK) При ошибке возвращает ноль (READOBJECT_ERROR)
         :rtype: int
         """
         return mapReadObjectByNumberEx_t (_hmap, _hsite, _hobj, _sheetnumber, _objectnumber)

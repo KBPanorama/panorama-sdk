@@ -2363,6 +2363,22 @@ else:
         """
         return mapIsSiteDocumentStorage_t (_hmap, _hsite)
 
+    mapGetDbmFileFromServer_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetDbmFileFromServer', maptype.HMAP, maptype.HSITE, maptype.PWCHAR)
+    def mapGetDbmFileFromServer(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _path: mapsyst.WTEXT) -> int:
+        """
+        Считать на клиент xml файл подключения карты к базе данных
+        
+        :param _hmap: идентификатор открытых данных (документа)
+        
+        :param _hsite: идентификатор векторной карты в открытых данных
+        
+        :param _path: путь для сохранения файла подключения
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapGetDbmFileFromServer_t (_hmap, _hsite, _path.buffer())
+
     mapGetDocumentFromSitz_t = mapsyst.GetProcAddress(acceslib,ctypes.POINTER(ctypes.c_char),'mapGetDocumentFromSitz', maptype.HMAP, maptype.HSITE, ctypes.c_long, maptype.PWCHAR, ctypes.POINTER(ctypes.c_long), ctypes.POINTER(ctypes.c_long))
     def mapGetDocumentFromSitz(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _list: int, _name: mapsyst.WTEXT, _size: ctypes.POINTER(ctypes.c_long), _error: ctypes.POINTER(ctypes.c_long)) -> ctypes.POINTER(ctypes.c_char):
         """

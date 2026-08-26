@@ -71,7 +71,8 @@ class FEATURELIST(ctypes.Structure):
                 ("UserPropertiesBlock",ctypes.c_char_p),
                 ("SemNameList",ctypes.c_char_p),
                 ("SemBlocName",ctypes.c_char_p),
-                ("Reserve",ctypes.c_char*(96))]
+                ("SrsName",maptype.PWCHAR),
+                ("Reserve",ctypes.c_char*(88))]
 #-----------------------------
 
 

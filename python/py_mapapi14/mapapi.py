@@ -12272,6 +12272,32 @@ else:
         """
         return mapCallPython_t (_hmap, _hobj, _path.buffer(), _function.buffer(), _error, _value)
 
+    mapCallProcessPython_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCallProcessPython', maptype.HMAP, maptype.HSITE, maptype.HSITE, maptype.PWCHAR, maptype.PWCHAR, maptype.PWCHAR, ctypes.POINTER(ctypes.c_long))
+    def mapCallProcessPython(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _haddsite: maptype.HSITE, _parmpath: mapsyst.WTEXT, _path: mapsyst.WTEXT, _function: mapsyst.WTEXT, _error: ctypes.POINTER(ctypes.c_long)) -> int:
+        """
+        Выполнить скрипт на python
+        
+        hwnd - идентификатор обработчика, которое будут отправляться сообщения, или 0
+        
+        :param _hmap: идентификатор открытого документа
+        
+        :param _hsite: идентификатор обрабатываемой векторной карты в документе
+        
+        :param _haddsite: идентификатор дополнительной векторной карты в документе
+        
+        :param _parmpath: полный путь к файлу параметров
+        
+        :param _path: полный путь к файлу py, содержащему код скрипта на python
+        
+        :param _function: имя выполняемой функции на python вида def Function(hmap:maptype.``HMAP``, hsite1:maptype.``HSITE``, hsite2:maptype.``HSITE``, parmname:str) -> int:
+        
+        :param _error: возвращаемый код ошибки выполнения скрипта
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapCallProcessPython_t (_hmap, _hsite, _haddsite, _parmpath.buffer(), _path.buffer(), _function.buffer(), _error)
+
     mapCallTaskPython_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCallTaskPython', ctypes.POINTER(ctypes.c_void_p), ctypes.POINTER(ctypes.c_void_p), maptype.PWCHAR, maptype.PWCHAR, ctypes.POINTER(ctypes.c_long), ctypes.POINTER(ctypes.c_double))
     def mapCallTaskPython(_hident: ctypes.POINTER(ctypes.c_void_p), _parm: ctypes.POINTER(ctypes.c_void_p), _path: mapsyst.WTEXT, _function: mapsyst.WTEXT, _error: ctypes.POINTER(ctypes.c_long), _value: ctypes.POINTER(ctypes.c_double)) -> int:
         """
