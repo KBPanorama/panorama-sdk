@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" ?> 
-<pylist name="Basic set of scripts" maxident="15">
+<pylist name="Basic set of scripts" maxident="20">
  <node name="Processing of selected objects">
   <item path="moveobjects.py" name="Move objects onto specified offsets dx,dy" image="moveobjects.png" function="MoveObjects" ident="1"/> 
   <item path="map3d.py" name="Add h by matrix of heights"  image="map3d_add.png" function = "AddHValue" ident="2"/>
@@ -24,6 +24,7 @@
   <item path="saveboundary.py" name="List of border areas in the settlement into a text file"  image="saveboundary.png" function="SaveBoundaryList" ident="11"/>
   <item path="selectboundary.py" name="Select on the map the border areas in the settlement" image="selectboundary.png" function="SelectBoundary" ident="12"/>
   <item path="thematicrosstat.py" name="Thematic mapping based on Rosstat data" function="RosstatThematic" image="thematicrosstat.png" ident="13"/>
+  <item path="rosreestrxmlaicheck.py" name="XML verification according to the Rosreestr scheme" function="CheckRosreestrXml" image="rosreestrxmlaicheck.png" ident="19"/>
  </node>
  <node name="Import/Export data">
   <item path="miftomap.py" name="Import folder with MIF/MID files" image="miftomap.png" function="MifFolderToMap" ident="14"/>
