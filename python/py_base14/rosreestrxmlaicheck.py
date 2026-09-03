@@ -13,6 +13,7 @@ import json
 import os
 import queue
 import re
+import socket
 import ssl
 import sys
 import threading
@@ -26,7 +27,6 @@ import xml.etree.ElementTree as elementTree
 if not hasattr(sys, 'argv'):
     sys.argv = ['']
 
-# Порядок как в rosstat2map.py: сначала Tk, затем MAPAPI.
 import tkinter
 import tkinter.ttk
 from tkinter import filedialog
@@ -57,7 +57,6 @@ def EnsureTkinter():
 
 
 def ConfigureTtkTheme(root):
-    """Тема ttk, как в диалогах rosstat2map.py."""
     style = tkinter.ttk.Style(root)
     if 'vista' in style.theme_names():
         style.theme_use('vista')
@@ -493,8 +492,25 @@ _STR = {
         'prompt_none': 'нет',
         'err_yandex_error': 'Yandex AI Studio вернул ошибку: {error}',
         'err_no_text': 'В ответе Yandex AI Studio отсутствует текст результата.',
+        'err_model_unavailable': (
+            'Модель «{model}» не справилась с проверкой или временно недоступна.\n'
+            'Выберите другую модель в списке и повторите проверку.'
+        ),
         'err_http': 'Ошибка API (HTTP {code}): {error}',
         'err_connect': 'Не удалось подключиться к Yandex AI Studio: {error}',
+        'err_timeout': (
+            'Превышено время ожидания ответа модели «{model}» ({seconds} с).\n'
+            'Повторите проверку, выберите другую модель или уменьшите объём XML и XSD.'
+        ),
+        'err_timeout_generic': (
+            'Превышено время ожидания ответа Yandex AI Studio ({seconds} с).\n'
+            'Проверьте сеть и повторите попытку.'
+        ),
+        'err_billing': (
+            'Yandex AI Studio отклонил запрос: недостаточно средств или исчерпана квота.\n'
+            'Проверьте баланс и квоты каталога в Yandex Cloud и повторите проверку.\n'
+            'Подробности: {error}'
+        ),
         'err_json': 'Yandex AI Studio вернул некорректный JSON.',
         'err_no_models': 'Yandex AI Studio не вернул доступных текстовых моделей.',
         'err_models_http': 'Ошибка списка моделей (HTTP {code}): {error}',
@@ -573,8 +589,25 @@ _STR = {
         'prompt_none': 'none',
         'err_yandex_error': 'Yandex AI Studio returned an error: {error}',
         'err_no_text': 'The Yandex AI Studio response contains no result text.',
+        'err_model_unavailable': (
+            'The «{model}» model failed to complete the check or is temporarily unavailable.\n'
+            'Select another model from the list and try again.'
+        ),
         'err_http': 'API error (HTTP {code}): {error}',
         'err_connect': 'Failed to connect to Yandex AI Studio: {error}',
+        'err_timeout': (
+            'Timed out waiting for the «{model}» model response ({seconds} s).\n'
+            'Retry, select another model, or reduce the XML and XSD size.'
+        ),
+        'err_timeout_generic': (
+            'Timed out waiting for Yandex AI Studio ({seconds} s).\n'
+            'Check the network and try again.'
+        ),
+        'err_billing': (
+            'Yandex AI Studio rejected the request: insufficient funds or quota exceeded.\n'
+            'Check the folder balance and quotas in Yandex Cloud and retry.\n'
+            'Details: {error}'
+        ),
         'err_json': 'Yandex AI Studio returned invalid JSON.',
         'err_no_models': 'Yandex AI Studio returned no available text models.',
         'err_models_http': 'Model list error (HTTP {code}): {error}',
@@ -1340,28 +1373,162 @@ def BuildPrompt(xmlPath, xmlText, schemas, warnings):
         schemas=''.join(schemaSections),
     )
 
+def AsList(value):
+    if isinstance(value, list):
+        return value
+    if isinstance(value, tuple):
+        return list(value)
+    return []
+
+
+def CollectTextFragments(node, fragments):
+    if node is None:
+        return
+    if isinstance(node, str):
+        text = node.strip()
+        if text:
+            fragments.append(text)
+        return
+    if isinstance(node, (list, tuple)):
+        for item in node:
+            CollectTextFragments(item, fragments)
+        return
+    if not isinstance(node, dict):
+        return
+    for key in ('output_text', 'text', 'result'):
+        value = node.get(key)
+        if isinstance(value, str) and value.strip():
+            fragments.append(value.strip())
+    CollectTextFragments(node.get('output'), fragments)
+    CollectTextFragments(node.get('content'), fragments)
+    CollectTextFragments(node.get('message'), fragments)
+    CollectTextFragments(node.get('choices'), fragments)
+
+
 def ExtractResponseText(response):
-    direct = response.get('output_text')
-    if isinstance(direct, str) and direct.strip():
-        return direct.strip()
+    if not isinstance(response, dict):
+        raise RuntimeError(tr('err_json'))
 
     fragments = []
-    for item in response.get('output', []):
-        if not isinstance(item, dict):
+    CollectTextFragments(response, fragments)
+    unique = []
+    seen = set()
+    for text in fragments:
+        if text in seen:
             continue
-        for content in item.get('content', []):
-            if not isinstance(content, dict):
-                continue
-            text = content.get('text')
-            if isinstance(text, str):
-                fragments.append(text)
-    if fragments:
-        return '\n'.join(fragments).strip()
+        seen.add(text)
+        unique.append(text)
+    if unique:
+        return '\n'.join(unique)
 
     error = response.get('error')
     if error:
         raise RuntimeError(tr('err_yandex_error', error=error))
     raise RuntimeError(tr('err_no_text'))
+
+
+def ModelUnavailableError(model):
+    return RuntimeError(
+        tr('err_model_unavailable', model=NormalizeModelId(model) or model)
+    )
+
+
+def IsTimeoutError(error):
+    if isinstance(error, socket.timeout):
+        return True
+    reason = getattr(error, 'reason', None)
+    if isinstance(reason, socket.timeout):
+        return True
+    text = str(reason if reason is not None else error).lower()
+    return 'timed out' in text or 'timeout' in text
+
+
+def IsBillingFailure(statusCode, details):
+    if statusCode == 402:
+        return True
+    text = (details or '').lower()
+    markers = (
+        'billing',
+        'quota',
+        'balance',
+        'insufficient',
+        'payment required',
+        'out of money',
+        'no funds',
+        'limit exceeded',
+        'resource exhausted',
+        'квот',
+        'баланс',
+        'средств',
+        'оплат',
+        'нулев',
+    )
+    for marker in markers:
+        if marker in text:
+            return True
+    return False
+
+
+def TimeoutMessage(model=None):
+    if model:
+        return tr(
+            'err_timeout',
+            seconds=REQUEST_TIMEOUT,
+            model=NormalizeModelId(model) or model,
+        )
+    return tr('err_timeout_generic', seconds=REQUEST_TIMEOUT)
+
+
+def ReadApiResponse(request, model=None):
+    try:
+        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
+            return response.read().decode('utf-8')
+    except urllib.error.HTTPError as error:
+        details = FormatHttpError(error)
+        if IsBillingFailure(error.code, details):
+            raise RuntimeError(tr('err_billing', error=details))
+        if model and IsTemporaryModelFailure(error.code, details):
+            raise ModelUnavailableError(model)
+        if model is None:
+            raise RuntimeError(
+                tr('err_models_http', code=error.code, error=details)
+            )
+        raise RuntimeError(tr('err_http', code=error.code, error=details))
+    except socket.timeout:
+        raise RuntimeError(TimeoutMessage(model))
+    except urllib.error.URLError as error:
+        if IsTimeoutError(error):
+            raise RuntimeError(TimeoutMessage(model))
+        if model is None:
+            raise RuntimeError(tr('err_models_connect', error=error.reason))
+        raise RuntimeError(tr('err_connect', error=error.reason))
+
+
+def IsTemporaryModelFailure(statusCode, details):
+    if statusCode in (404, 408, 409, 429, 500, 502, 503, 504, 529):
+        return True
+    text = (details or '').lower()
+    markers = (
+        'unavailable',
+        'overloaded',
+        'capacity',
+        'not found',
+        'does not exist',
+        'temporarily',
+        'timeout',
+        'timed out',
+        'no content',
+        'empty',
+        'недоступн',
+        'перегруз',
+        'не найден',
+        'не существ',
+        'таймаут',
+    )
+    for marker in markers:
+        if marker in text:
+            return True
+    return False
 
 def FormatHttpError(error):
     try:
@@ -1410,7 +1577,7 @@ def IsTextGenerationModel(record, modelId):
     return True
 
 def ParseModelsResponse(payload, folderId=''):
-    records = payload.get('data', []) if isinstance(payload, dict) else []
+    records = AsList(payload.get('data') if isinstance(payload, dict) else None)
     models = []
     discoveredLimits = {}
     for record in records:
@@ -1449,15 +1616,7 @@ def RequestAvailableModels(apiKey, folderId):
         },
         method='GET',
     )
-    try:
-        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
-            raw = response.read().decode('utf-8')
-    except urllib.error.HTTPError as error:
-        raise RuntimeError(
-            tr('err_models_http', code=error.code, error=FormatHttpError(error))
-        )
-    except urllib.error.URLError as error:
-        raise RuntimeError(tr('err_models_connect', error=error.reason))
+    raw = ReadApiResponse(request)
     try:
         payload = json.loads(raw)
     except ValueError:
@@ -1484,20 +1643,23 @@ def RequestYandex(apiKey, folderId, model, prompt):
         },
         method='POST',
     )
-    try:
-        with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT) as response:
-            raw = response.read().decode('utf-8')
-    except urllib.error.HTTPError as error:
-        raise RuntimeError(
-            tr('err_http', code=error.code, error=FormatHttpError(error))
-        )
-    except urllib.error.URLError as error:
-        raise RuntimeError(tr('err_connect', error=error.reason))
+    raw = ReadApiResponse(request, model)
 
     try:
-        return ExtractResponseText(json.loads(raw))
+        payload = json.loads(raw)
     except ValueError:
-        raise RuntimeError(tr('err_json'))
+        raise ModelUnavailableError(model)
+    try:
+        return ExtractResponseText(payload)
+    except RuntimeError as error:
+        message = str(error)
+        if message in (tr('err_no_text'), tr('err_json')):
+            raise ModelUnavailableError(model)
+        if IsTemporaryModelFailure(0, message):
+            raise ModelUnavailableError(model)
+        raise
+    except Exception:
+        raise ModelUnavailableError(model)
 
 def PerformCheck(xmlPath, xsdPath, apiKey, folderId, model, maxSourceChars):
     xmlText = ReadTextFile(xmlPath)
@@ -1925,7 +2087,11 @@ class CheckDialog:
             report = PerformCheck(*arguments)
             self.events.put(('ok', report))
         except Exception as error:
-            self.events.put(('error', str(error)))
+            if IsTimeoutError(error):
+                model = arguments[4] if len(arguments) > 4 else None
+                self.events.put(('error', TimeoutMessage(model)))
+            else:
+                self.events.put(('error', str(error)))
 
     def PollWorker(self):
         try:
