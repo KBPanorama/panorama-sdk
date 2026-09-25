@@ -2359,6 +2359,36 @@ else:
         """
         return mapGetScaleMethod_t ()
 
+    mapSetScaleMethodEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetScaleMethodEx', maptype.HMAP, ctypes.c_long, maptype.HPAINT)
+    def mapSetScaleMethodEx(_hmap: maptype.HMAP, _method: int, _hPaint: maptype.HPAINT) -> int:
+        """
+        Установить способ масштабирования объектов карты при отображении
+        
+        :param _hmap: идентификатор открытых данных (документа)
+        
+        :param _method: способ масштабирования: -``1`` - использовать глобальное значение, ``0`` - картографический ``"с запаздыванием увеличения"``, ``1`` - чертежный
+        
+        :param _hPaint: идентификатор контекста отображения для многопоточного вызова функций отображения и поиска
+        
+        :returns: Возвращает ранее установленное значение
+        :rtype: int
+        """
+        return mapSetScaleMethodEx_t (_hmap, _method, _hPaint)
+
+    mapGetScaleMethodEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetScaleMethodEx', maptype.HMAP, maptype.HPAINT)
+    def mapGetScaleMethodEx(_hmap: maptype.HMAP, _hPaint: maptype.HPAINT) -> int:
+        """
+        Запросить способ масштабирования объектов карты при отображении
+        
+        :param _hmap: идентификатор открытых данных (документа)
+        
+        :param _hPaint: идентификатор контекста отображения для многопоточного вызова функций отображения и поиска
+        
+        :returns: Возвращает ранее установленное значение
+        :rtype: int
+        """
+        return mapGetScaleMethodEx_t (_hmap, _hPaint)
+
     mapShowAllObjects_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapShowAllObjects', ctypes.c_long)
     def mapShowAllObjects(_flag: int) -> int:
         """
@@ -9673,9 +9703,9 @@ else:
         """
         Создать объекты - пустоты по выделенным объектам
         
-        :param _hmap: идентификатор открытой векторной карты с выделенными объектами
+        :param _hmap: идентификатор открытого документа с выделенными объектами (на одной или нескольких картах)
         
-        :param _hsite: идентификатор векторной карты для записи объектов - пустот
+        :param _hsite: идентификатор векторной карты для записи объектов - пустот  (например, временная карта в памяти)
         
         :param _hobj: идентификатор объекта карты в памяти, граница области для создания объектов - пустот
         

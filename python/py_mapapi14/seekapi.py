@@ -2869,13 +2869,15 @@ else:
         return mapSeekPointObjectByDistanceAndName_t (_hmap, _hsite, _hsrcobj, _hobj, _radius, _semcode, _value.buffer(), _visible)
 
     mapGetObjectsUnion_t = mapsyst.GetProcAddress(acceslib,maptype.HOBJ,'mapGetObjectsUnion', maptype.HOBJ, maptype.HOBJ, maptype.HOBJ, ctypes.c_long, ctypes.c_double)
-    def mapGetObjectsUnion(_hobj1: maptype.HOBJ, _hobj2: maptype.HOBJ, _hobj: maptype.HOBJ, _method: int, _delta: float) -> maptype.HOBJ:
+    def mapGetObjectsUnion(_hobj1: maptype.HOBJ, _hobj2: maptype.HOBJ, _hdest: maptype.HOBJ, _method: int, _delta: float) -> maptype.HOBJ:
         """
         Объединение (сшивка) двух объектов
         
         :param _hobj1: идентификатор первого объекта
         
-        :param _hobj2: идентификатор второго объекта hdest - идентификатор объекта карты в памяти, в котором будет размещен результат
+        :param _hobj2: идентификатор второго объекта
+        
+        :param _hdest: идентификатор объекта карты в памяти, в котором будет размещен результат
         
         :param _method: метод сшивки (тип результирующего объекта): ``LOCAL_SQUARE`` - площадной (на входе только два площадных или линейных замкнутых объекта), ``LOCAL_LINE`` - линейный (на входе два линейных незамкнутых объекта)
         
@@ -2890,7 +2892,7 @@ else:
            Только для ПЛОЩАДНЫХ или ЛИНЕЙНЫХ объектов
            Не допускается сшивать замкнутый и незамкнутый объекты
         """
-        return mapGetObjectsUnion_t (_hobj1, _hobj2, _hobj, _method, _delta)
+        return mapGetObjectsUnion_t (_hobj1, _hobj2, _hdest, _method, _delta)
 
     mapSquareObjectsUnion_t = mapsyst.GetProcAddress(acceslib,maptype.HOBJ,'mapSquareObjectsUnion', maptype.HOBJ, maptype.HOBJ, maptype.HOBJ, ctypes.c_double, ctypes.c_long)
     def mapSquareObjectsUnion(_hobj1: maptype.HOBJ, _hobj2: maptype.HOBJ, _hdest: maptype.HOBJ, _delta: float, _flag: int) -> maptype.HOBJ:

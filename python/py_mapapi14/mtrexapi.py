@@ -192,7 +192,8 @@ class FLOOD_ZONE_BY_FAIRWAY(ctypes.Structure):
                 ("Vicinity",ctypes.c_int),
                 ("DepthMaxDistance",ctypes.c_int),
                 ("Zero",ctypes.c_int),
-                ("Reserve",ctypes.c_char*(88))]
+                ("MinDepth",ctypes.c_double),
+                ("Reserve",ctypes.c_char*(80))]
 #-----------------------------
 
 
