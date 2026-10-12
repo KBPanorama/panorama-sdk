@@ -6437,6 +6437,24 @@ else:
         """
         return mapSemanticValueFullNameUn_t (_hobj, _number, _place.buffer(), _size)
 
+    mapSemanticKeyValue_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticKeyValue', maptype.HOBJ, ctypes.c_long, ctypes.c_char_p, ctypes.c_long)
+    def mapSemanticKeyValue(_info: maptype.HOBJ, _number: int, _place: ctypes.c_char_p, _size: int) -> int:
+        """
+        Запросить по номеру семантики типа справочник в виде ключа значения
+        
+        hobj - идентификатор объекта карты в памяти
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _place: адрес буфера для записи значения ключа
+        
+        :param _size: длина буфера в байтах
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapSemanticKeyValue_t (_info, _number, _place, _size)
+
     mapSemanticCodeValueUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticCodeValueUn', maptype.HOBJ, ctypes.c_long, maptype.PWCHAR, ctypes.c_long, ctypes.c_long)
     def mapSemanticCodeValueUn(_hobj: maptype.HOBJ, _code: int, _place: mapsyst.WTEXT, _size: int, _number: int) -> int:
         """
