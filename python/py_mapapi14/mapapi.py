@@ -6990,12 +6990,14 @@ else:
         """
         return mapUpdateSemanticByFormula_t (_hobj, _int)
 
-    mapCreateSemanticRecord_t = mapsyst.GetProcAddress(acceslib,maptype.HSEMRECORD,'mapCreateSemanticRecord', maptype.HOBJ)
-    def mapCreateSemanticRecord(_hobj: maptype.HOBJ) -> maptype.HSEMRECORD:
+    mapCreateSemanticRecordEx_t = mapsyst.GetProcAddress(acceslib,maptype.HSEMRECORD,'mapCreateSemanticRecordEx', maptype.HOBJ, ctypes.c_long)
+    def mapCreateSemanticRecordEx(_hobj: maptype.HOBJ, _groupcode: int) -> maptype.HSEMRECORD:
         """
         Создать запись набора семантик объекта
         
         :param _hobj: идентификатор объекта карты в памяти
+        
+        :param _groupcode: код групповой семантики или ``0``
         
         :returns: Возвращает идентификатор групповой семантики в памяти
         :rtype: maptype.HSEMRECORD
@@ -7004,7 +7006,7 @@ else:
 
            После завершения работы с записью набора семантик необходимо освободить ресурсы функцией mapFreeSemanticRecord
         """
-        return mapCreateSemanticRecord_t (_hobj)
+        return mapCreateSemanticRecordEx_t (_hobj, _groupcode)
 
     mapFreeSemanticRecord_t = mapsyst.GetProcAddress(acceslib,ctypes.c_void_p,'mapFreeSemanticRecord', maptype.HSEMRECORD)
     def mapFreeSemanticRecord(_hsemrecord: maptype.HSEMRECORD) -> ctypes.c_void_p:
@@ -7146,6 +7148,20 @@ else:
            Если такая семантика была и она не повторяемая - значение заменяется
         """
         return mapAppendGroupSemantic_t (_hobj, _code, _hsemrecord)
+
+    mapDeleteSemanticForSemanticRecord_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapDeleteSemanticForSemanticRecord', maptype.HSEMRECORD, ctypes.c_long)
+    def mapDeleteSemanticForSemanticRecord(_hsemrecord: maptype.HSEMRECORD, _number: int) -> int:
+        """
+        Удалить семантику в записи групповой семантики по номеру
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapDeleteSemanticForSemanticRecord_t (_hsemrecord, _number)
 
     mapGetGroupSemanticValue_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetGroupSemanticValue', maptype.HOBJ, ctypes.c_long, maptype.HSEMRECORD, maptype.PWCHAR, ctypes.c_int)
     def mapGetGroupSemanticValue(_hobj: maptype.HOBJ, _code: int, _hsemrecord: maptype.HSEMRECORD, _value: mapsyst.WTEXT, _size: int) -> int:
