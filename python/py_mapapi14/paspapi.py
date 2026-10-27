@@ -650,6 +650,42 @@ else:
         """
         return pspGetPassword_t (_mapname.buffer(), _password.buffer(), _size)
 
+    paspqtPspEdit_t = mapsyst.GetProcAddress(pasplib,ctypes.c_long,'paspqtPspEdit', maptype.HMAP, ctypes.POINTER(maptype.TASKPARMEX), maptype.PWCHAR, ctypes.c_int, maptype.PWCHAR, ctypes.c_int, maptype.PWCHAR, ctypes.c_int, maptype.PWCHAR, ctypes.c_int, ctypes.c_int)
+    def paspqtPspEdit(_hmap: maptype.HMAP, _parm: ctypes.POINTER(maptype.TASKPARMEX), _mapname: mapsyst.WTEXT, _size: int, _areaname: mapsyst.WTEXT, _regime: int, _password: mapsyst.WTEXT, _passwsize: int, _rscname: mapsyst.WTEXT, _rscsize: int, _epsgcode: int) -> int:
+        """
+        Вызвать диалог создания и редактирования карты
+        
+        :param _hmap: идентификатор открытой карты или ``0``
+        
+        :param _parm: параметры задачи (описание в maptype.h)
+        
+        :param _mapname: указатель на строку, содержащую имя карты (файла паспорта)
+        
+        :param _size: длина строки имени карты в байтах
+        
+        :param _areaname: имя района
+        
+        :param _regime: режим работы с паспортом (``1`` - создание, ``0`` - редактирование)
+        
+        :param _password: пароль доступа к данным из которого формируется ``256``-битный код для шифрования данных (при утрате данные не восстанавливаются)
+        
+        :param _passwsize: длина поля пароля в байтах
+        
+        :param _rscname: имя классификатора, с которым создана карта
+        
+        :param _rscsize: длина поля имени классификатора в байтах
+        
+        :param _epsgcode: код ``EPSG`` для начальной инициализации полей диалога или ``0`` при epsgcode ``= -1`` устанавливается тип карты ``"Крупномасштабный план"`` Help вызывается по топику ``CREATE_MAP``
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        
+        .. note::
+
+           После вызова функции значение строки может измениться
+        """
+        return paspqtPspEdit_t (_hmap, _parm, _mapname.buffer(), _size, _areaname.buffer(), _regime, _password.buffer(), _passwsize, _rscname.buffer(), _rscsize, _epsgcode)
+
 
 
 def paspapi_healthcheck():

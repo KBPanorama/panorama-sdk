@@ -68,8 +68,8 @@ class WTEXT:
             self.__buffer = bytearray(num_or_str.__buffer)
 
         if isinstance(self.__buffer,bytearray):
-            t = ctypes.c_char * self.__bytes
             self.__bytes = self.__buffer.__len__()
+            t = ctypes.c_char * self.__bytes
             self.__dllbuffer = t.from_buffer(self.__buffer)
 
     def string(self): # для работы в питоне
