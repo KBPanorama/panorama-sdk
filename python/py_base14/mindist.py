@@ -40,6 +40,13 @@ class GraphPathfinder:
     isCancel     = 0
     
     def __init__(self, basemap: maptype.HMAP, sitA:maptype.HSITE, semA:str, sitB:maptype.HSITE,semB:str, sitGraph:maptype.HSITE):
+        self.connections = []
+        self.threads = []
+        self.threadActive = []
+        self.errors = []
+        self.processed = 0
+        self.isCancel = 0
+        self.mutex = threading.Lock()
         self.baseMap = basemap
         self.centersA,self.infoA = self.CollectData(sitA,semA)
         self.centersB,self.infoB = self.CollectData(sitB,semB)
@@ -50,7 +57,7 @@ class GraphPathfinder:
 
         self.totalData = numCentFrom * numCentTo
         if self.totalData == 0:
-            return
+            raise ValueError('Нет объектов с координатами для построения маршрутов')
 
         self.mutex = threading.Lock()
 
@@ -73,6 +80,8 @@ class GraphPathfinder:
             if isCancel == -1:
                 break
         mapapi.mapCloseProgressBar(progBar)
+        if isCancel == -1:
+            raise RuntimeError('Подготовка маршрутов отменена')
 
     def SemanticValueByName(self, hObj:maptype.HOBJ, name:str):
         _name = mapsyst.WTEXT(128)
@@ -86,11 +95,9 @@ class GraphPathfinder:
         return '<empty>'
     
     def WriteToFile(self, outstr):
-        self.mutex.acquire()
-        f = open(self.outFileName,'a')
-        f.write(outstr)
-        f.close()
-        self.mutex.release()
+        with self.mutex:
+            with open(self.outFileName, 'a') as f:
+                f.write(outstr)
     
     def CollectData(self, hsite:maptype.HSITE, _semname:str):
         centers    = []
@@ -104,20 +111,25 @@ class GraphPathfinder:
                 y = ctypes.c_double(0)
                 if mapapi.mapGetObjectCenterEx(self.baseMap,hObj,ctypes.byref(x),ctypes.byref(y),1):
                     centers.append(maptype.DOUBLEPOINT(x,y))
-                seminfo.append(self.SemanticValueByName(hObj,_semname))
+                    seminfo.append(self.SemanticValueByName(hObj,_semname))
         mapapi.mapFreeObject(hObj)
         return centers, seminfo
         
     def CalcThread(self, index, c_from, c_to):
         self.threadActive[index] = 1
+        netGraph = 0
         try:
             opennetparm = graphapi.OPENNETPARM()
             netGraph = graphapi.onOpenNetEx(self.baseMap,self.sitGraph,ctypes.byref(opennetparm))
+            if not netGraph:
+                raise RuntimeError('Не удалось открыть граф дорог')
 
             pathparam = graphapi.PATHPARM()
             th_processed = 0
             outstr = ''
             for i in range(c_from,c_to):
+                if self.isCancel == -1:
+                    break
                 pathparam.Point1 = self.centersA[self.connections[i][0]]
                 pathparam.Point2 = self.centersB[self.connections[i][1]]
                 path = graphapi.onCreatePath(netGraph, ctypes.byref(pathparam))
@@ -129,9 +141,8 @@ class GraphPathfinder:
                     outstr += self.infoA[self.connections[i][0]]+','+self.infoB[self.connections[i][1]]+',-1.0\n'
                 
                 th_processed += 1
-                self.mutex.acquire()
-                self.processed += 1
-                self.mutex.release()
+                with self.mutex:
+                    self.processed += 1
                 
                 if th_processed % 50 == 0: # запись каждые n обработок
                     self.WriteToFile(outstr)
@@ -142,15 +153,20 @@ class GraphPathfinder:
             if len(outstr): # записать остатки
                 self.WriteToFile(outstr)
             
-            graphapi.onCloseNet(netGraph)
         except Exception as e:
-            self.threadActive[index] = 0
-            return
+            with self.mutex:
+                self.errors.append(str(e))
+                self.isCancel = -1
         finally:
+            if netGraph:
+                graphapi.onCloseNet(netGraph)
             self.threadActive[index] = 0
-            return
 
     def CalcMinDistances(self, outFilename:str, numTh:int):
+        if self.totalData == 0:
+            return 0
+        self.isCancel = 0
+        self.errors.clear()
         self.outFileName = outFilename
         f = open(self.outFileName,'w')
         f.close()
@@ -168,26 +184,33 @@ class GraphPathfinder:
             th = threading.Thread(target=self.CalcThread, args=(i,c_from,c_to))
             self.threads.append(th)
             self.threadActive.append(0)
-            
+                  
         for i in range(0,self.numThreads):
             self.threads[i].start()
 
         progBar = mapapi.mapOpenProgressBar()
         percentPrev = 0
         percent = 0
-        while 1:
-            percent = int(100*self.processed/self.totalData)
+        while any(th.is_alive() for th in self.threads):
+            with self.mutex:
+                percent = int(100*self.processed/self.totalData)
             if percent != percentPrev:
                 self.isCancel = mapapi.mapProgressBar(progBar,percent,mapsyst.WTEXT('Построение маршрутов'))
+                percentPrev = percent
                 if self.isCancel == -1:
                     break
-            act = 0
-            for i in range(0,self.numThreads):
-                act += self.threadActive[i]
-            if act == 0:
-                break
             time.sleep(0.2)    # 0.2 sec
-        mapapi.mapCloseProgressBar(progBar)
+            
+        self.isCancel = -1
+        try:
+            for th in self.threads:
+                th.join()
+        finally:
+            mapapi.mapCloseProgressBar(progBar)
+
+        if self.errors:
+            raise RuntimeError('Ошибка расчета: ' + self.errors[0] +
+                               '. Выходной файл может быть неполным.')
 
         return self.processed
 
@@ -252,41 +275,48 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
 
     def SetVars():
         nonlocal processed, semNameA, semNameB
+        def ShowError(text):
+            mainWindow.withdraw()
+            mainWindow.update_idletasks()
+            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT(text), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
+            mainWindow.deiconify()
+            mainWindow.update_idletasks()
+
         if sitA == 0 and sitB == 0:
-            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбраны карты объектов'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-            return
-        else:
-            if sitA == 0:
-                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана карта объектов группы A'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-                return
-            elif sitB == 0:
-                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана карта объектов группы B'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-                return
+            return ShowError('Не выбраны карты объектов')
+        if sitA == 0:
+            return ShowError('Не выбрана карта объектов группы A')
+        if sitB == 0:
+            return ShowError('Не выбрана карта объектов группы B')
 
         semFrom = semNameA.get()
         semTo   = semNameB.get()
 
         if len(semFrom) == 0 and len(semTo) == 0:
-            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбраны сохраняемые семантики объектов'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-            return
-        else:
-            if len(semFrom) == 0:
-                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана семантика объектов группы A'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-                return
-            elif len(semTo) == 0:
-                mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбрана семантика объектов группы B'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-                return
+            return ShowError('Не выбраны сохраняемые семантики объектов')
+        if len(semFrom) == 0:
+            return ShowError('Не выбрана семантика объектов группы A')
+        if len(semTo) == 0:
+            return ShowError('Не выбрана семантика объектов группы B')
 
         files = [('CSV', '*.csv')]
-        outputFileName = asksaveasfilename(parent = mainWindow, filetypes = files, defaultextension = files)
+        outputFileName = asksaveasfilename(parent = mainWindow, filetypes = files, defaultextension = '.csv')
 
         if len(outputFileName) == 0:
-            mapapi.mapMessageBoxUn(0, mapsyst.WTEXT('Не выбран файл для сохранения данных'), mapsyst.WTEXT('Подсчет длин маршрутов'), maptype.MB_WARNING)
-            return
+            return ShowError('Не выбран файл для сохранения данных')
 
-        graphPathfinder = GraphPathfinder(hmap,sitA,semFrom,sitB,semTo,sitGraph)
-        processed = graphPathfinder.CalcMinDistances(outputFileName,16)
+        try:
+            graphPathfinder = GraphPathfinder(hmap, sitA, semFrom, sitB, semTo, sitGraph)
+            processed = graphPathfinder.CalcMinDistances(outputFileName, 16)
+        except Exception as e:
+            return ShowError(str(e))
         mainWindow.destroy()
+        
+        message = mapsyst.WTEXT("Ошибка обработки маршрутов")
+        if processed > 0:
+            message = mapsyst.WTEXT("Обработано маршрутов: "+str(processed))    
+        
+        mapapi.mapShowMessage(message, mapsyst.WTEXT('Подсчет длин маршрутов'))
 
     def GroupAChange(*args):
         nonlocal sitA
@@ -346,7 +376,5 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:�
     mainWindow.eval('tk::PlaceWindow . center')
     mainWindow.resizable(False, False)
     mainWindow.mainloop()
-
-    mapapi.mapShowMessage(mapsyst.WTEXT("Обработано маршрутов: "+str(processed)),mapsyst.WTEXT('Подсчет длин маршрутов'))
-
+    
     return int(processed)
