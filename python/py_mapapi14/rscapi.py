@@ -3429,7 +3429,7 @@ else:
         """
         return mapSetRscClsKeyUn_t (_hrsc, _code, _value, _key.buffer())
 
-    mapGetRscSemanticClassificatorFullNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticClassificatorFullNameUn', maptype.HRSC, ctypes.c_long, ctypes.c_long, maptype.PWCHAR, ctypes.c_int)
+    mapGetRscSemanticClassificatorFullNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticClassificatorFullNameUn', maptype.HRSC, ctypes.c_long, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapGetRscSemanticClassificatorFullNameUn(_hrsc: maptype.HRSC, _code: int, _value: int, _buffer: mapsyst.WTEXT, _size: int) -> int:
         """
         Запросить полное имя классификатора семантики в UTF-16 по коду семантики и значению классификатора
