@@ -7251,6 +7251,28 @@ else:
         """
         return mapSemanticRecordGroupValue_t (_hsemrecord, _number, _hsubrecord)
 
+    mapSemanticRecordValueUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticRecordValueUn', maptype.HSEMRECORD, ctypes.c_long, maptype.PWCHAR, ctypes.c_long, ctypes.c_long, ctypes.POINTER(ctypes.c_long))
+    def mapSemanticRecordValueUn(_hsemrecord: maptype.HSEMRECORD, _number: int, _value: mapsyst.WTEXT, _size: int, _separator: int, _error: ctypes.POINTER(ctypes.c_long)) -> int:
+        """
+        Запросить по номеру значение семантики в виде строки
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _value: адрес буфера для записи значения семантики
+        
+        :param _size: длина буфера в байтах
+        
+        :param _separator: разделитель целой и дробной части для числового значения: ``0`` - десятичную точку не изменять ``1`` - заменить десятичную точку на символ, установленный в системе '.' или ',' - заменить десятичную точку на separator: '.' или ',' Значение преобразуется в символьный вид без раскодирования семантик типа справочник Значение семантики типа справочник будет прочитано в виде числового кода справочника
+
+        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу Значение преобразуется в символьный вид без раскодирования семантик типа справочник Значение семантики типа справочник будет прочитано в виде числового кода справочника
+        
+        :returns: При ошибке возвращает ноль, иначе - код семантики
+        :rtype: int
+        """
+        return mapSemanticRecordValueUn_t (_hsemrecord, _number, _value.buffer(), _size, _separator, _error)
+
     mapSemanticRecordValueNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticRecordValueNameUn', maptype.HSEMRECORD, ctypes.c_long, maptype.PWCHAR, ctypes.c_long, ctypes.c_long, ctypes.POINTER(ctypes.c_long))
     def mapSemanticRecordValueNameUn(_hsemrecord: maptype.HSEMRECORD, _number: int, _value: mapsyst.WTEXT, _size: int, _separator: int, _error: ctypes.POINTER(ctypes.c_long)) -> int:
         """
@@ -7266,7 +7288,7 @@ else:
         
         :param _separator: разделитель целой и дробной части ``0`` - десятичную точку не изменять ``1`` - заменить десятичную точку на символ, установленный в системе '.' или ',' - заменить десятичную точку на separator: '.' или ','
         
-        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу Например: для семантики типа справочник ``"СОСТОЯНИЕ"`` значение ``"5"`` заменется на ``"жилой"``
+        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу Значение преобразуется в символьный вид без раскодирования семантик типа справочник Значение семантики типа справочник будет прочитано в виде числового кода справочника
         
         :returns: При ошибке возвращает ноль, иначе - код семантики
         :rtype: int
@@ -7422,6 +7444,29 @@ else:
         :rtype: int
         """
         return mapSemanticRecordCodeLongValue_t (_hsemrecord, _code, _value, _number)
+
+    mapCheckSemanticGroupValue_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapCheckSemanticGroupValue', maptype.HOBJ, ctypes.c_long, maptype.HSEMRECORD)
+    def mapCheckSemanticGroupValue(_hobj: maptype.HOBJ, _number: int, _hsemrecord: maptype.HSEMRECORD) -> int:
+        """
+        Запросить по номеру семантики - содержится ли в семантике группа семантик
+        
+        :param _hobj: идентификатор объекта карты в памяти
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта или ``0``
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        
+        .. note::
+
+           Если hsemrecord равен нулю, то проверяется семантика непосредственно из объекта,
+           иначе - проверяется семантика в группе
+           Может оказаться, что семантика содержит описание группы, но по классификатору RSC она не групповая,
+           и наоборот - групповая семантика может не содержать группу
+        """
+        return mapCheckSemanticGroupValue_t (_hobj, _number, _hsemrecord)
 
     mapGetExclusiveSubject_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetExclusiveSubject', maptype.HOBJ, ctypes.c_long)
     def mapGetExclusiveSubject(_hobj: maptype.HOBJ, _number: int) -> int:
