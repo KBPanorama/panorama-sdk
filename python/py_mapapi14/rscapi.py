@@ -3076,7 +3076,7 @@ else:
         
         :param _name: адрес строки для размещения результата
         
-        :param _size: максимальный размер выходной строки
+        :param _size: максимальный размер выходной строки Каждая семантика имеет название, код, ключ ``ANSI``, псевдоним ``ANSI`` и ключ UTF-16
         
         :returns: При ошибке возвращает пустую строку
         :rtype: int
@@ -3086,7 +3086,7 @@ else:
     mapGetRscSemanticNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticNameUn', maptype.HRSC, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapGetRscSemanticNameUn(_hrsc: maptype.HRSC, _code: int, _name: mapsyst.WTEXT, _size: int) -> int:
         """
-        Запросить название семантики по коду в кодировке UTF-16
+        Запросить название семантики в кодировке UTF-16 по коду
         
         :param _hrsc: идентификатор классификатора карты
         
@@ -3094,7 +3094,7 @@ else:
         
         :param _name: адрес строки для размещения результата
         
-        :param _size: максимальный размер выходной строки в байтах (может быть до ``2048`` байт)
+        :param _size: максимальный размер выходной строки в байтах (может быть до ``2048`` байт) Каждая семантика имеет название, код, ключ ``ANSI``, псевдоним ``ANSI`` и ключ UTF-16
         
         :returns: При ошибке возвращает ноль
         :rtype: int
@@ -3104,7 +3104,7 @@ else:
     mapSetRscSemanticNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetRscSemanticNameUn', maptype.HRSC, ctypes.c_long, maptype.PWCHAR)
     def mapSetRscSemanticNameUn(_hrsc: maptype.HRSC, _code: int, _name: mapsyst.WTEXT) -> int:
         """
-        Установить название семантики по коду в кодировке UTF-16
+        Установить название семантики в кодировке UTF-16 по коду
         
         :param _hrsc: идентификатор классификатора карты
         
@@ -3120,7 +3120,7 @@ else:
     mapGetRscSemanticTypeByCode_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticTypeByCode', maptype.HRSC, ctypes.c_long)
     def mapGetRscSemanticTypeByCode(_hrsc: maptype.HRSC, _code: int) -> int:
         """
-        Запросить тип семантики по ее внешнему коду
+        Запросить тип семантики по коду
         
         :param _hrsc: идентификатор классификатора карты
         
@@ -3132,22 +3132,22 @@ else:
         return mapGetRscSemanticTypeByCode_t (_hrsc, _code)
 
     mapGetRscSemanticKeyUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticKeyUn', maptype.HRSC, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
-    def mapGetRscSemanticKeyUn(_hrsc: maptype.HRSC, _code: int, _shortname: mapsyst.WTEXT, _size: int) -> int:
+    def mapGetRscSemanticKeyUn(_hrsc: maptype.HRSC, _code: int, _key: mapsyst.WTEXT, _keysize: int) -> int:
         """
-        Запросить короткое имя (ключ) семантики
+        Запросить буквенно-цифровой ключ семантики в кодировке UTF-16 по коду
         
         :param _hrsc: идентификатор классификатора карты
         
         :param _code: код семантики
         
-        :param _shortname: короткое имя семантики (ключ)
+        :param _key: поле для записи ключа в кодировке UTF-16
         
-        :param _size: размер выходной строки
+        :param _keysize: размер поля в байтах Каждая семантика имеет название, код, ключ ``ANSI``, псевдоним ``ANSI`` и ключ UTF-16
         
         :returns: При ошибке возвращает ноль
         :rtype: int
         """
-        return mapGetRscSemanticKeyUn_t (_hrsc, _code, _shortname.buffer(), _size)
+        return mapGetRscSemanticKeyUn_t (_hrsc, _code, _key.buffer(), _keysize)
 
     mapGetRscSemanticShortNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticShortNameUn', maptype.HRSC, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapGetRscSemanticShortNameUn(_hrsc: maptype.HRSC, _code: int, _shortname: mapsyst.WTEXT, _size: int) -> int:
@@ -3186,7 +3186,7 @@ else:
     mapSetRscSemanticDecimal_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetRscSemanticDecimal', maptype.HRSC, ctypes.c_long, ctypes.c_long, ctypes.c_long)
     def mapSetRscSemanticDecimal(_hrsc: maptype.HRSC, _code: int, _size: int, _decimal: int) -> int:
         """
-        Установить размер и точность значения семантики
+        Установить размер и точность значения семантики по коду
         
         :param _hrsc: идентификатор классификатора карты
         
@@ -3222,7 +3222,7 @@ else:
     mapGetRscSemanticExByCode_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticExByCode', maptype.HRSC, ctypes.POINTER(maptype.RSCSEMANTICEX), ctypes.c_long)
     def mapGetRscSemanticExByCode(_hrsc: maptype.HRSC, _semtype: ctypes.POINTER(maptype.RSCSEMANTICEX), _code: int) -> int:
         """
-        Заполнить структуру описания семантической характеристики по коду семантики
+        Заполнить структуру описания семантической характеристики по коду
         
         :param _hrsc: идентификатор классификатора карты
         
@@ -3252,17 +3252,17 @@ else:
     mapGetRscSemanticClassificatorNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticClassificatorNameUn', maptype.HRSC, ctypes.c_long, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapGetRscSemanticClassificatorNameUn(_hrsc: maptype.HRSC, _code: int, _number: int, _name: mapsyst.WTEXT, _size: int) -> int:
         """
-        Запросить название значения характеристики из классификатора семантики по коду семантики и номеру в классификаторе
+        Запросить название значения из справочника семантики
         
         :param _hrsc: идентификатор классификатора карты
         
         :param _code: код семантики
         
-        :param _number: последовательный номер в классификаторе(``1``,``2``,``3``...)
+        :param _number: последовательный номер значения в справочнике (``1``,``2``,``3``...)
         
         :param _name: адрес строки для размещения результата
         
-        :param _size: максимальный размер строки (может быть до ``2048`` байт)
+        :param _size: максимальный размер строки (может быть до ``2048`` байт) Каждое значение справочника имеет числовой код, название, ключ и короткое имя
         
         :returns: При ошибке возвращает ноль
         :rtype: int
@@ -3272,13 +3272,13 @@ else:
     mapGetRscSemanticClassificatorCode_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscSemanticClassificatorCode', maptype.HRSC, ctypes.c_long, ctypes.c_long)
     def mapGetRscSemanticClassificatorCode(_hrsc: maptype.HRSC, _code: int, _number: int) -> int:
         """
-        Запросить код значения характеристики из классификатора семантики по коду семантики и номеру в классификаторе
+        Запросить код значения из справочника семантики
         
         :param _hrsc: идентификатор классификатора карты
         
         :param _code: код семантики
         
-        :param _number: последовательный номер в классификаторе(``1``,``2``,``3``...)
+        :param _number: последовательный номер значения в справочнике (``1``,``2``,``3``...) Каждое значение справочника имеет числовой код, название, ключ и короткое имя
         
         :returns: При ошибке возвращает ноль
         :rtype: int
@@ -3288,7 +3288,7 @@ else:
     mapAppendRscClassificatorUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapAppendRscClassificatorUn', maptype.HRSC, ctypes.c_long, ctypes.c_long, maptype.PWCHAR)
     def mapAppendRscClassificatorUn(_hrsc: maptype.HRSC, _code: int, _value: int, _name: mapsyst.WTEXT) -> int:
         """
-        Записать новую "строчку" классификатора - числовое значение и символьное
+        Записать новое значение в справочник семантики
         
         :param _hrsc: идентификатор классификатора карты
         
@@ -3304,35 +3304,35 @@ else:
         return mapAppendRscClassificatorUn_t (_hrsc, _code, _value, _name.buffer())
 
     mapUpdateRscClassificatorNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapUpdateRscClassificatorNameUn', maptype.HRSC, ctypes.c_long, ctypes.c_long, maptype.PWCHAR)
-    def mapUpdateRscClassificatorNameUn(_hrsc: maptype.HRSC, _code: int, _index: int, _name: mapsyst.WTEXT) -> int:
+    def mapUpdateRscClassificatorNameUn(_hrsc: maptype.HRSC, _code: int, _number: int, _name: mapsyst.WTEXT) -> int:
         """
-        Обновить символьное значение классификатора по номеру строки
+        Обновить название значения из справочника семантики по номеру
         
         :param _hrsc: идентификатор классификатора карты
         
         :param _code: код семантической характеристики
         
-        :param _index: номер строки с ``1``
+        :param _number: последовательный номер значения в справочнике (``1``,``2``,``3``...)
         
         :param _name: символьное значение семантической характеристики
         
         :returns: Возвращает номер исправленной строки с 1 При ошибке возвращает ноль
         :rtype: int
         """
-        return mapUpdateRscClassificatorNameUn_t (_hrsc, _code, _index, _name.buffer())
+        return mapUpdateRscClassificatorNameUn_t (_hrsc, _code, _number, _name.buffer())
 
     mapGetRscClsAbbreviationUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetRscClsAbbreviationUn', maptype.HRSC, ctypes.c_long, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapGetRscClsAbbreviationUn(_hrsc: maptype.HRSC, _code: int, _value: int, _buffer: mapsyst.WTEXT, _size: int) -> int:
         """
-        Запросить сокращенное имя перечислимой семантики по коду семантики и значению перечислимой семантики
+        Запросить короткое имя значения из справочника семантики по коду значения
         
-        :param _code: код семантики
+        :param _code: код семантической характеристики
         
-        :param _value: код перечислимой семантики (``"Код из классификатора (список)"``)
-        
-        :param _size: размер буфера для размещения строки (``64`` байта)
+        :param _value: числовой код значения из справочника
         
         :param _buffer: буфер для размещения выходной строки - сокращенного имени (Псевдонима)
+        
+        :param _size: размер буфера для размещения строки в байтах (не менее ``64`` байт) Каждое значение справочника имеет числовой код, название, ключ и короткое имя
         
         :returns: При ошибке возвращает ноль
         :rtype: int

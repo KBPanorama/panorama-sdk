@@ -6634,17 +6634,17 @@ else:
     mapSemanticCodeKeyValue_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticCodeKeyValue', maptype.HOBJ, ctypes.c_long, ctypes.c_char_p, ctypes.c_long, ctypes.c_long)
     def mapSemanticCodeKeyValue(_hobj: maptype.HOBJ, _code: int, _place: ctypes.c_char_p, _size: int, _number: int) -> int:
         """
-        Запросить по коду значение семантики типа справочник в виде ключа значения
+        Запросить по коду семантики ключ значения из справочника семантики
         
         :param _hobj: идентификатор объекта карты в памяти
         
-        :param _code: код семантики, для которой ищется значение
+        :param _code: код семантики типа справочник (``TCODE``), для которой ищется значение
         
         :param _place: адрес буфера для записи значения семантики
         
-        :param _size: длина буфера в байтах Семантика типа справочник для каждого значения имеет числовой код, ключ, короткое обозначение и название
+        :param _size: длина буфера в байтах
         
-        :param _number: последовательный номер с ``1`` запрашиваемого значения среди семантик с тем же кодом, не равен последовательному номеру характеристики Ключ и короткое обозначение имеют одинаковое назначение и позволяют использовать фактически ``2`` разных ключа
+        :param _number: последовательный номер с ``1`` запрашиваемого значения среди семантик с тем же кодом, не равен последовательному номеру характеристики Каждое значение справочника имеет числовой код, название, ключ и короткое имя
         
         :returns: При ошибке возвращает ноль, иначе - последовательный номер найденной характеристики
         :rtype: int
@@ -6654,17 +6654,17 @@ else:
     mapSemanticCodeShortName_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticCodeShortName', maptype.HOBJ, ctypes.c_long, ctypes.c_char_p, ctypes.c_long, ctypes.c_long)
     def mapSemanticCodeShortName(_hobj: maptype.HOBJ, _code: int, _place: ctypes.c_char_p, _size: int, _number: int) -> int:
         """
-        Запросить по коду значение семантики типа справочник в виде короткого обозначения
+        Запросить по коду семантики короткое имя значения из справочника семантики
         
         :param _hobj: идентификатор объекта карты в памяти
         
-        :param _code: код семантики, для которой ищется значение
+        :param _code: код семантики типа справочник (``TCODE``), для которой ищется значение
         
         :param _place: адрес буфера для записи значения семантики
         
-        :param _size: длина буфера в байтах (значение может быть до ``64`` символов ``ANSI`` c замыкающим нулем) Семантика типа справочник для каждого значения имеет числовой код, ключ, короткое обозначение и название
+        :param _size: длина буфера в байтах (значение может быть до ``64`` символов ``ANSI`` c замыкающим нулем)
         
-        :param _number: последовательный номер с ``1`` запрашиваемого значения среди семантик с тем же кодом, не равен последовательному номеру характеристики Ключ и короткое обозначение имеют одинаковое назначение и позволяют использовать фактически ``2`` разных ключа
+        :param _number: последовательный номер с ``1`` запрашиваемого значения среди семантик с тем же кодом, не равен последовательному номеру характеристики Каждое значение справочника имеет числовой код, название, ключ и короткое имя
         
         :returns: При ошибке возвращает ноль, иначе - последовательный номер найденной характеристики
         :rtype: int
@@ -6688,7 +6688,7 @@ else:
     mapSemanticClassificatorNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticClassificatorNameUn', maptype.HOBJ, ctypes.c_long, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapSemanticClassificatorNameUn(_hobj: maptype.HOBJ, _code: int, _number: int, _place: mapsyst.WTEXT, _size: int) -> int:
         """
-        Запросить название значения семантики типа справочник
+        Запросить по коду семантики имя значения из справочника семантики
         
         :param _hobj: идентификатор объекта карты в памяти
         
@@ -6708,7 +6708,7 @@ else:
     mapSemanticClassificatorCode_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticClassificatorCode', maptype.HOBJ, ctypes.c_long, ctypes.c_long)
     def mapSemanticClassificatorCode(_hobj: maptype.HOBJ, _code: int, _number: int) -> int:
         """
-        Запросить код значения семантики типа справочник
+        Запросить по коду семантики код значения из справочника семантики
         
         :param _hobj: идентификатор объекта карты в памяти
         
@@ -6990,6 +6990,20 @@ else:
         """
         return mapUpdateSemanticByFormula_t (_hobj, _int)
 
+    mapReadCopySemantic_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapReadCopySemantic', maptype.HOBJ, maptype.HOBJ)
+    def mapReadCopySemantic(_hdest: maptype.HOBJ, _hsrc: maptype.HOBJ) -> int:
+        """
+        Считать копию семантики объекта векторной карты в другой объект
+        
+        :param _hdest: идентификатор заполняемого объекта карты в памяти
+        
+        :param _hsrc: идентификатор считываемого объекта карты в памяти
+        
+        :returns: При ошибке возвращает ноль
+        :rtype: int
+        """
+        return mapReadCopySemantic_t (_hdest, _hsrc)
+
     mapCreateSemanticRecordEx_t = mapsyst.GetProcAddress(acceslib,maptype.HSEMRECORD,'mapCreateSemanticRecordEx', maptype.HOBJ, ctypes.c_long)
     def mapCreateSemanticRecordEx(_hobj: maptype.HOBJ, _groupcode: int) -> maptype.HSEMRECORD:
         """
@@ -7265,13 +7279,39 @@ else:
         :param _size: длина буфера в байтах
         
         :param _separator: разделитель целой и дробной части для числового значения: ``0`` - десятичную точку не изменять ``1`` - заменить десятичную точку на символ, установленный в системе '.' или ',' - заменить десятичную точку на separator: '.' или ',' Значение преобразуется в символьный вид без раскодирования семантик типа справочник Значение семантики типа справочник будет прочитано в виде числового кода справочника
-
-        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу Значение преобразуется в символьный вид без раскодирования семантик типа справочник Значение семантики типа справочник будет прочитано в виде числового кода справочника
         
         :returns: При ошибке возвращает ноль, иначе - код семантики
         :rtype: int
         """
         return mapSemanticRecordValueUn_t (_hsemrecord, _number, _value.buffer(), _size, _separator, _error)
+
+    mapSemanticValueUnFromRecord_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticValueUnFromRecord', maptype.HOBJ, ctypes.c_long, maptype.PWCHAR, ctypes.c_long, ctypes.c_long, ctypes.POINTER(ctypes.c_long), maptype.HSEMRECORD)
+    def mapSemanticValueUnFromRecord(_hobj: maptype.HOBJ, _number: int, _value: mapsyst.WTEXT, _size: int, _separator: int, _error: ctypes.POINTER(ctypes.c_long), _hsemrecord: maptype.HSEMRECORD) -> int:
+        """
+        Запросить по номеру значение семантики в виде строки
+        
+        :param _hobj: идентификатор объекта карты в памяти
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _value: адрес буфера для записи значения семантики
+        
+        :param _size: длина буфера в байтах
+        
+        :param _separator: разделитель целой и дробной части для числового значения: ``0`` - десятичную точку не изменять ``1`` - заменить десятичную точку на символ, установленный в системе '.' или ',' - заменить десятичную точку на separator: '.' или ','
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта
+        
+        :returns: При ошибке возвращает ноль, иначе - код семантики
+        :rtype: int
+        
+        .. note::
+
+           Если hsemrecord не равен нулю - вызывает mapSemanticRecordValueUn, иначе - mapSemanticValueUn
+           Значение преобразуется в символьный вид без раскодирования семантик типа справочник
+           Значение семантики типа справочник будет прочитано в виде числового кода справочника
+        """
+        return mapSemanticValueUnFromRecord_t (_hobj, _number, _value.buffer(), _size, _separator, _error, _hsemrecord)
 
     mapSemanticRecordValueNameUn_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticRecordValueNameUn', maptype.HSEMRECORD, ctypes.c_long, maptype.PWCHAR, ctypes.c_long, ctypes.c_long, ctypes.POINTER(ctypes.c_long))
     def mapSemanticRecordValueNameUn(_hsemrecord: maptype.HSEMRECORD, _number: int, _value: mapsyst.WTEXT, _size: int, _separator: int, _error: ctypes.POINTER(ctypes.c_long)) -> int:
@@ -7288,12 +7328,41 @@ else:
         
         :param _separator: разделитель целой и дробной части ``0`` - десятичную точку не изменять ``1`` - заменить десятичную точку на символ, установленный в системе '.' или ',' - заменить десятичную точку на separator: '.' или ','
         
-        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу Значение преобразуется в символьный вид без раскодирования семантик типа справочник Значение семантики типа справочник будет прочитано в виде числового кода справочника
+        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу Например: для семантики типа справочник ``"СОСТОЯНИЕ"`` значение ``"5"`` заменется на ``"жилой"``
         
         :returns: При ошибке возвращает ноль, иначе - код семантики
         :rtype: int
         """
         return mapSemanticRecordValueNameUn_t (_hsemrecord, _number, _value.buffer(), _size, _separator, _error)
+
+    mapSemanticValueNameUnFromRecord_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticValueNameUnFromRecord', maptype.HOBJ, ctypes.c_long, maptype.PWCHAR, ctypes.c_long, ctypes.c_long, ctypes.POINTER(ctypes.c_long), maptype.HSEMRECORD)
+    def mapSemanticValueNameUnFromRecord(_hobj: maptype.HOBJ, _number: int, _value: mapsyst.WTEXT, _size: int, _separator: int, _error: ctypes.POINTER(ctypes.c_long), _hsemrecord: maptype.HSEMRECORD) -> int:
+        """
+        Запросить по номеру значение семантики в символьном раскодированном виде
+        
+        :param _hobj: идентификатор объекта карты в памяти
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _value: адрес буфера для записи значения семантики
+        
+        :param _size: длина буфера в байтах
+        
+        :param _separator: разделитель целой и дробной части ``0`` - десятичную точку не изменять ``1`` - заменить десятичную точку на символ, установленный в системе '.' или ',' - заменить десятичную точку на separator: '.' или ','
+        
+        :param _error: поле для записи кода ошибки, если значение семантики не соответствует ее типу
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта
+        
+        :returns: При ошибке возвращает ноль, иначе - код семантики
+        :rtype: int
+        
+        .. note::
+
+           Если hsemrecord не равен нулю - вызывает mapSemanticRecordValueNameUn, иначе - mapSemanticValueNameUn
+           Например: для семантики типа справочник ``"СОСТОЯНИЕ"`` значение ``"5"`` заменется на ``"жилой"``
+        """
+        return mapSemanticValueNameUnFromRecord_t (_hobj, _number, _value.buffer(), _size, _separator, _error, _hsemrecord)
 
     mapSemanticRecordValueFullNameUnicode_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticRecordValueFullNameUnicode', maptype.HSEMRECORD, ctypes.c_long, maptype.PWCHAR, ctypes.c_long)
     def mapSemanticRecordValueFullNameUnicode(_hsemrecord: maptype.HSEMRECORD, _number: int, _value: mapsyst.WTEXT, _size: int) -> int:
@@ -7388,6 +7457,48 @@ else:
         :rtype: int
         """
         return mapSemanticRecordCodeKeyValue_t (_hsemrecord, _code, _key, _size, _number)
+
+    mapSemanticRecordKeyValue_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticRecordKeyValue', maptype.HSEMRECORD, ctypes.c_long, ctypes.c_char_p, ctypes.c_long)
+    def mapSemanticRecordKeyValue(_hsemrecord: maptype.HSEMRECORD, _number: int, _key: ctypes.c_char_p, _size: int) -> int:
+        """
+        Запросить по номеру семантики значение семантической характеристики типа справочник в виде ключа значения
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _key: адрес буфера для записи значения ключа семантики (до ``64`` байт)
+        
+        :param _size: длина буфера в байтах
+        
+        :returns: При ошибке возвращает ноль, иначе - последовательный номер найденной характеристики
+        :rtype: int
+        """
+        return mapSemanticRecordKeyValue_t (_hsemrecord, _number, _key, _size)
+
+    mapSemanticKeyValueFromRecord_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticKeyValueFromRecord', maptype.HOBJ, ctypes.c_long, ctypes.c_char_p, ctypes.c_long, maptype.HSEMRECORD)
+    def mapSemanticKeyValueFromRecord(_info: maptype.HOBJ, _number: int, _key: ctypes.c_char_p, _size: int, _hsemrecord: maptype.HSEMRECORD) -> int:
+        """
+        Запросить по номеру семантики значение семантической характеристики типа справочник в виде ключа значения
+        
+        hobj - идентификатор объекта карты в памяти
+        
+        :param _number: последовательный номер характеристики c ``1``
+        
+        :param _key: адрес буфера для записи значения ключа семантики (до ``64`` байт)
+        
+        :param _size: длина буфера в байтах
+        
+        :param _hsemrecord: идентификатор записи набора семантик объекта
+        
+        :returns: При ошибке возвращает ноль, иначе - последовательный номер найденной характеристики
+        :rtype: int
+        
+        .. note::
+
+           Если hsemrecord не равен нулю - вызывает mapSemanticRecordKeyValue, иначе - mapSemanticKeyValue
+        """
+        return mapSemanticKeyValueFromRecord_t (_info, _number, _key, _size, _hsemrecord)
 
     mapSemanticRecordCodeLongKeyValue_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSemanticRecordCodeLongKeyValue', maptype.HSEMRECORD, ctypes.c_long, ctypes.c_char_p, ctypes.c_long, ctypes.c_long)
     def mapSemanticRecordCodeLongKeyValue(_hsemrecord: maptype.HSEMRECORD, _code: int, _key: ctypes.c_char_p, _size: int, _number: int) -> int:
