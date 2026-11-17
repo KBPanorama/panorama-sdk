@@ -149,7 +149,24 @@ class LOCALDATUMPARAM(ctypes.Structure):
 
 
 #-----------------------------
+class LOCALDATUMPARAMEX(LOCALDATUMPARAM):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("X",ctypes.c_double),
+                ("Y",ctypes.c_double),
+                ("Z",ctypes.c_double)]
+#-----------------------------
+
+
+#-----------------------------
 class DATUMPARAM(LOCALDATUMPARAM):
+    _pack_ = PACK_WIDTH
+    _fields_ = [("Count",ctypes.c_int),
+                ("Reserve",ctypes.c_int)]
+#-----------------------------
+
+
+#-----------------------------
+class DATUMPARAMEX(LOCALDATUMPARAMEX):
     _pack_ = PACK_WIDTH
     _fields_ = [("Count",ctypes.c_int),
                 ("Reserve",ctypes.c_int)]

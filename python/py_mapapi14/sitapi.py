@@ -3342,8 +3342,8 @@ else:
         """
         return mapGetSiteInfoPro_t (_hmap, _hsite, _mapreg, _listreg, _sheetnames, _sheetnumber)
 
-    mapUpdateSiteInfo_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapUpdateSiteInfo', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.LISTREGISTER), ctypes.POINTER(mapcreat.SHEETNAMES), maptype.PWCHAR, ctypes.c_long, ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.c_long, ctypes.POINTER(mapcreat.LOCALTRANSFORM), ctypes.c_long)
-    def mapUpdateSiteInfo(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _listreg: ctypes.POINTER(mapcreat.LISTREGISTER), _sheetnames: ctypes.POINTER(mapcreat.SHEETNAMES), _mainname: mapsyst.WTEXT, _sheetnumber: int, _datum: ctypes.POINTER(mapcreat.DATUMPARAM), _ellparm: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _type: int, _parm: ctypes.POINTER(mapcreat.LOCALTRANSFORM), _transform: int) -> int:
+    mapUpdateSitePasp_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapUpdateSitePasp', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.LISTREGISTER), ctypes.POINTER(mapcreat.SHEETNAMES), maptype.PWCHAR, ctypes.c_long, ctypes.POINTER(mapcreat.DATUMPARAMEX), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.c_long, ctypes.POINTER(mapcreat.LOCALTRANSFORM), ctypes.c_long)
+    def mapUpdateSitePasp(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _listreg: ctypes.POINTER(mapcreat.LISTREGISTER), _sheetnames: ctypes.POINTER(mapcreat.SHEETNAMES), _mainname: mapsyst.WTEXT, _sheetnumber: int, _datum: ctypes.POINTER(mapcreat.DATUMPARAMEX), _ellparm: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _type: int, _parm: ctypes.POINTER(mapcreat.LOCALTRANSFORM), _transform: int) -> int:
         """
         Обновить паспортные данные векторной карты
         
@@ -3359,7 +3359,7 @@ else:
         
         :param _parm: параметры локального преобразования координат или ``0``
         
-        :param _transform: признак пересчета координат при смене параметров: ``0`` - не пересчитывать; ``1`` - пересчитать координаты объектов Структуры ``MAPREGISTEREX``, ``LISTREGISTER``, ``SHEETNAMES``, ``DATUMPARAM``, ``ELLIPSOIDPARAM``, ``LOCALTRANSFORM`` описаны в mapcreat.h При смене параметров проекции карта будет трансформирована в соответствии с новыми параметрами проекции из ``MAPREGISTEREX``, если параметр transform не равен нулю Для листа карты можно изменить название, номенклатуру и метаданные (``LISTREGISTER``), координаты рамки (если территория карты ограничена рамкой) пересчитываются автоматически Время выполнения функции соответствует времени выполнения трансформировании карты (при смене параметров проекции) При выполнении трансформирования посылается сообщение ``WM_PROGRESSBAR`` (maptype.h) окну (mapSetHandleForMessage)
+        :param _transform: признак пересчета координат при смене параметров: ``0`` - не пересчитывать; ``1`` - пересчитать координаты объектов Структуры ``MAPREGISTEREX``, ``LISTREGISTER``, ``SHEETNAMES``, ``DATUMPARAMEX``, ``ELLIPSOIDPARAM``, ``LOCALTRANSFORM`` описаны в mapcreat.h При смене параметров проекции карта будет трансформирована в соответствии с новыми параметрами проекции из ``MAPREGISTEREX``, если параметр transform не равен нулю Для листа карты можно изменить название, номенклатуру и метаданные (``LISTREGISTER``), координаты рамки (если территория карты ограничена рамкой) пересчитываются автоматически Время выполнения функции соответствует времени выполнения трансформировании карты (при смене параметров проекции) При выполнении трансформирования посылается сообщение ``WM_PROGRESSBAR`` (maptype.h) окну (mapSetHandleForMessage)
         
         :returns: трансформирование карты - возвращает отрицательное значение, иначе - положительное При ошибке возвращает ноль
         :rtype: int
@@ -3368,10 +3368,10 @@ else:
 
            Если при обновлении параметров проекции выполнялось
         """
-        return mapUpdateSiteInfo_t (_hmap, _hsite, _mapreg, _listreg, _sheetnames, _mainname.buffer(), _sheetnumber, _datum, _ellparm, _type, _parm, _transform)
+        return mapUpdateSitePasp_t (_hmap, _hsite, _mapreg, _listreg, _sheetnames, _mainname.buffer(), _sheetnumber, _datum, _ellparm, _type, _parm, _transform)
 
-    mapSetSiteDatum_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetSiteDatum', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.DATUMPARAM))
-    def mapSetSiteDatum(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _parm: ctypes.POINTER(mapcreat.DATUMPARAM)) -> int:
+    mapSetSiteDatumEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetSiteDatumEx', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.DATUMPARAMEX))
+    def mapSetSiteDatumEx(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _parm: ctypes.POINTER(mapcreat.DATUMPARAMEX)) -> int:
         """
         Установить параметры Datum для карты
         
@@ -3382,10 +3382,10 @@ else:
         :returns: При ошибке возвращает ноль
         :rtype: int
         """
-        return mapSetSiteDatum_t (_hmap, _hsite, _parm)
+        return mapSetSiteDatumEx_t (_hmap, _hsite, _parm)
 
-    mapGetSiteDatum_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetSiteDatum', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.DATUMPARAM))
-    def mapGetSiteDatum(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _parm: ctypes.POINTER(mapcreat.DATUMPARAM)) -> int:
+    mapGetSiteDatumEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetSiteDatumEx', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.DATUMPARAMEX))
+    def mapGetSiteDatumEx(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _parm: ctypes.POINTER(mapcreat.DATUMPARAMEX)) -> int:
         """
         Запросить параметры Datum для карты
         
@@ -3396,7 +3396,7 @@ else:
         :returns: При ошибке возвращает ноль
         :rtype: int
         """
-        return mapGetSiteDatum_t (_hmap, _hsite, _parm)
+        return mapGetSiteDatumEx_t (_hmap, _hsite, _parm)
 
     mapSetSiteEllipsoidParameters_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetSiteEllipsoidParameters', maptype.HMAP, maptype.HSITE, ctypes.POINTER(mapcreat.ELLIPSOIDPARAM))
     def mapSetSiteEllipsoidParameters(_hmap: maptype.HMAP, _hsite: maptype.HSITE, _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM)) -> int:

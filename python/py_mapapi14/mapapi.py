@@ -1248,8 +1248,8 @@ else:
         """
         return mapIsObjectStretch_t (_hobj)
 
-    mapSetDocProjectionPro_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetDocProjectionPro', maptype.HMAP, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.c_long, ctypes.POINTER(mapcreat.LOCALTRANSFORM))
-    def mapSetDocProjectionPro(_hmap: maptype.HMAP, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datum: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: int, _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
+    mapSetDocProjectionEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetDocProjectionEx', maptype.HMAP, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAMEX), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.c_long, ctypes.POINTER(mapcreat.LOCALTRANSFORM))
+    def mapSetDocProjectionEx(_hmap: maptype.HMAP, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datum: ctypes.POINTER(mapcreat.DATUMPARAMEX), _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: int, _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
         """
         Установить общие параметры системы координат документа для отображения, печати и расчета координат
         
@@ -1286,7 +1286,7 @@ else:
            карты в документе, можно передать в качестве параметров нули (кроме hmap),
            или вызвать mapClearDocProjection
         """
-        return mapSetDocProjectionPro_t (_hmap, _mapreg, _datum, _ellipsoid, _ttype, _tparm)
+        return mapSetDocProjectionEx_t (_hmap, _mapreg, _datum, _ellipsoid, _ttype, _tparm)
 
     mapSetDocProjectionFromUserSystem_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapSetDocProjectionFromUserSystem', maptype.HMAP, ctypes.c_void_p)
     def mapSetDocProjectionFromUserSystem(_hmap: maptype.HMAP, _huser: ctypes.c_void_p) -> int:
@@ -1306,8 +1306,8 @@ else:
     def mapClearDocProjection(_hmap: maptype.HMAP) -> int:
         return mapClearDocProjection_t (_hmap)
 
-    mapGetDocProjectionPro_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetDocProjectionPro', maptype.HMAP, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.POINTER(ctypes.c_long), ctypes.POINTER(mapcreat.LOCALTRANSFORM))
-    def mapGetDocProjectionPro(_hmap: maptype.HMAP, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datum: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: ctypes.POINTER(ctypes.c_long), _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
+    mapGetDocProjectionEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetDocProjectionEx', maptype.HMAP, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAMEX), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.POINTER(ctypes.c_long), ctypes.POINTER(mapcreat.LOCALTRANSFORM))
+    def mapGetDocProjectionEx(_hmap: maptype.HMAP, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datum: ctypes.POINTER(mapcreat.DATUMPARAMEX), _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: ctypes.POINTER(ctypes.c_long), _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
         """
         Запросить общие параметры системы координат открытых данных
         
@@ -1331,7 +1331,7 @@ else:
            Если параметры не устанавливались функцией mapSetMapInfoEx,
            то они соответсвуют параметрам карты, открытой в документе первой
         """
-        return mapGetDocProjectionPro_t (_hmap, _mapreg, _datum, _ellipsoid, _ttype, _tparm)
+        return mapGetDocProjectionEx_t (_hmap, _mapreg, _datum, _ellipsoid, _ttype, _tparm)
 
     mapIsDocProjection_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapIsDocProjection', maptype.HMAP)
     def mapIsDocProjection(_hmap: maptype.HMAP) -> int:
@@ -4010,8 +4010,8 @@ else:
         """
         return mapDeleteUserSystemParameters_t (_huser)
 
-    mapGetUserSystemParameters_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetUserSystemParameters', ctypes.c_void_p, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAM), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.POINTER(ctypes.c_long), ctypes.POINTER(mapcreat.LOCALTRANSFORM))
-    def mapGetUserSystemParameters(_huser: ctypes.c_void_p, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datum: ctypes.POINTER(mapcreat.DATUMPARAM), _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: ctypes.POINTER(ctypes.c_long), _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
+    mapGetUserSystemParametersEx_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapGetUserSystemParametersEx', ctypes.c_void_p, ctypes.POINTER(mapcreat.MAPREGISTEREX), ctypes.POINTER(mapcreat.DATUMPARAMEX), ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), ctypes.POINTER(ctypes.c_long), ctypes.POINTER(mapcreat.LOCALTRANSFORM))
+    def mapGetUserSystemParametersEx(_huser: ctypes.c_void_p, _mapreg: ctypes.POINTER(mapcreat.MAPREGISTEREX), _datum: ctypes.POINTER(mapcreat.DATUMPARAMEX), _ellipsoid: ctypes.POINTER(mapcreat.ELLIPSOIDPARAM), _ttype: ctypes.POINTER(ctypes.c_long), _tparm: ctypes.POINTER(mapcreat.LOCALTRANSFORM)) -> int:
         """
         Запросить текущие параметры пользовательской системы координат
         
@@ -4030,7 +4030,7 @@ else:
         :returns: При ошибке возвращает ноль
         :rtype: int
         """
-        return mapGetUserSystemParameters_t (_huser, _mapreg, _datum, _ellipsoid, _ttype, _tparm)
+        return mapGetUserSystemParametersEx_t (_huser, _mapreg, _datum, _ellipsoid, _ttype, _tparm)
 
     mapChangeUserSystemParametersByEpsg_t = mapsyst.GetProcAddress(acceslib,ctypes.c_long,'mapChangeUserSystemParametersByEpsg', ctypes.c_void_p, ctypes.c_long)
     def mapChangeUserSystemParametersByEpsg(_huser: ctypes.c_void_p, _epsgcode: int) -> int:
