@@ -1139,8 +1139,8 @@ def GetDialogSettings(hmap):
         objectMapName.set(defaultObjectMap)
     saveToArchive.set(
         1 if ReadSetting(iniName, u'SaveToArchive', u'1') != u'0' else 0)
-    containerMapName.trace('w', ContainerMapChanged)
-    objectMapName.trace('w', ObjectMapChanged)
+    containerMapName.trace_add('write', ContainerMapChanged)
+    objectMapName.trace_add('write', ObjectMapChanged)
     ContainerMapChanged()
     # Имя карты удаленных объектов всегда новое: не читаем и не пишем в INI.
     SetFileName(

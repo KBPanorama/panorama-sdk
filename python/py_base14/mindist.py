@@ -352,8 +352,8 @@ def CalcMinDistances(hmap:maptype.HMAP, hobj:maptype.HOBJ) -> float:  #caption:Ð
 
         grA_name  = tkinter.StringVar(master=mainWindow)
         grB_name  = tkinter.StringVar(master=mainWindow)
-        grA_name.trace('w',GroupAChange)
-        grB_name.trace('w',GroupBChange)
+        grA_name.trace_add('write',GroupAChange)
+        grB_name.trace_add('write',GroupBChange)
         grA_combo = tkinter.ttk.Combobox(mainWindow, textvariable=grA_name, values=mapNames,width=40,height = 100)
         grB_combo = tkinter.ttk.Combobox(mainWindow, textvariable=grB_name, values=mapNames,width=40,height = 100)
         grA_combo.grid(column=1, row=0,padx=5)
